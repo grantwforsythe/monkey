@@ -26,10 +26,12 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       pull-requests: read
       checks: write
+
     steps:
       - uses: actions/checkout@v4
 
