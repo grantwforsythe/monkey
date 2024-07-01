@@ -1,3 +1,3 @@
-module monkey
+module github.com/grantwforsythe/monkeylang
 
-go 1.14
+go 1.22
