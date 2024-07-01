@@ -1,8 +1,7 @@
 package lexer
 
 import (
-	"monkey/pkg/token"
-	"monkey/pkg/utils"
+	"github.com/grantwforsythe/monkeylang/pkg/token"
 )
 
 // TODO: Fully support on Unicode and UTF-8 characters (See Chapter 1.3 for more info)
