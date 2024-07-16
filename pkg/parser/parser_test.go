@@ -43,8 +43,25 @@ func TestLetStatement(t *testing.T) {
 
 func testLetStatement(t *testing.T, stmt ast.Statement, expectedIdentifier string) bool {
 	if stmt.TokenLiteral() != "let" {
-		t.Fatalf("")
+		t.Fatalf("s.TokenLiteral not 'let'. got=%q", stmt.TokenLiteral())
+		return false
 	}
-	return false
 
+	letStmt, ok := stmt.(*ast.LetStatement)
+	if !ok {
+		t.Errorf("s not *ast.LetStatement. got=%T", stmt)
+		return false
+	}
+
+	if letStmt.Name.Value != expectedIdentifier {
+		t.Errorf("letStmt.Name.Value not '%s'. got=%s", expectedIdentifier, letStmt.Name.Value)
+		return false
+	}
+
+	if letStmt.Name.TokenLiteral() != expectedIdentifier {
+		t.Errorf("letStmt.Name.TokenLiteral() not '%s'. got=%s", expectedIdentifier, letStmt.Name.TokenLiteral())
+		return false
+	}
+
+	return true
 }
