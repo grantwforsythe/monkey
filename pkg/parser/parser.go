@@ -1,25 +1,45 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/grantwforsythe/monkeylang/pkg/ast"
 	"github.com/grantwforsythe/monkeylang/pkg/lexer"
 	"github.com/grantwforsythe/monkeylang/pkg/token"
 )
 
+type errorString struct {
+	s string
+}
+
+func (e *errorString) Error() string {
+	return e.s
+}
+
 type Parser struct {
 	l         *lexer.Lexer
 	currToken token.Token
 	peekToken token.Token
+	errors    []errorString
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{l: l}
+	p := &Parser{l: l, errors: []errorString{}}
 
 	// Read the first two tokens so both curr and peek are set
 	p.nextToken()
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) Errors() []errorString {
+	return p.errors
+}
+
+func (p *Parser) peekError(t token.TokenType) {
+	msg := errorString{s: fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)}
+	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) nextToken() {
@@ -32,6 +52,7 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
 		p.nextToken()
 		return true
 	} else {
+		p.peekError(t)
 		return false
 	}
 }
