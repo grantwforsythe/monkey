@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/grantwforsythe/monkeylang/pkg/ast"
 	"github.com/grantwforsythe/monkeylang/pkg/lexer"
@@ -50,6 +51,7 @@ func New(l *lexer.Lexer) *Parser {
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
 	return p
 }
@@ -120,6 +122,21 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	for p.currToken.Type != token.SEMICOLON {
 		p.nextToken()
 	}
+
+	return stmt
+}
+
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	stmt := &ast.IntegerLiteral{Token: p.currToken}
+
+	value, err := strconv.ParseInt(p.currToken.Literal, 0, 64)
+	if err != nil {
+		msg := errorString{s: fmt.Sprintf("could not parse %s as integer", p.currToken.Literal)}
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	stmt.Value = value
 
 	return stmt
 }
