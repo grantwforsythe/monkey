@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/grantwforsythe/monkeylang/pkg/ast"
@@ -92,7 +93,7 @@ func TestIdentifierExpression(t *testing.T) {
 
 	ident, ok := stmt.Expression.(*ast.Identifier)
 	if !ok {
-		t.Fatalf("expression is not of type Identifier. got=%T", stmt.Expression)
+		t.Fatalf("exp is not of type Identifier. got=%T", stmt.Expression)
 	}
 
 	if ident.Value != "foobar" {
@@ -135,6 +136,47 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestParsingPrefixExpression(t *testing.T) {
+	prefixTest := []struct {
+		input    string
+		operator string
+		value    int64
+	}{
+		{"!5;", "!", 5},
+		{"-15;", "-", 15},
+	}
+
+	for _, tt := range prefixTest {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program does not have enough statements. got=%d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not of type ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		exp, ok := stmt.Expression.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not of type ast.PrexfixExpression. got=%T", stmt.Expression)
+		}
+
+		if exp.Operator != tt.operator {
+			t.Errorf("exp.Operator is not equal to %s. got=%s", tt.operator, exp.Operator)
+		}
+
+		if !testIntegerLiteral(t, exp.Right, tt.value) {
+			return
+		}
+
+	}
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 	if len(errors) == 0 {
@@ -147,6 +189,26 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	}
 
 	t.FailNow()
+}
+
+func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
+	inte, ok := il.(*ast.IntegerLiteral)
+	if !ok {
+		t.Errorf("il is not of type ast.IntegerLiteral. got=%T", il)
+		return false
+	}
+
+	if inte.Value != value {
+		t.Errorf("inte.Value is not equal to %d. got=%d", value, inte.Value)
+		return false
+	}
+
+	if inte.TokenLiteral() != fmt.Sprintf("%d", value) {
+		t.Errorf("inte.TokenLiteral() not equal to %d. got=%s", value, inte.TokenLiteral())
+		return false
+	}
+
+	return true
 }
 
 func testLetStatement(t *testing.T, stmt ast.Statement, expectedIdentifier string) bool {
