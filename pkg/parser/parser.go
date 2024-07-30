@@ -215,7 +215,7 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	stmt := &ast.ExpressionStatement{Token: p.currToken, Expression: p.parseExpression(LOWEST)}
 
-	if p.expectPeek(token.SEMICOLON) {
+	if p.peekToken.Type == token.SEMICOLON {
 		p.nextToken()
 	}
 
