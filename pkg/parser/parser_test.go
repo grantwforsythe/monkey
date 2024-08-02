@@ -58,7 +58,10 @@ func TestReturnStatements(t *testing.T) {
 	checkParserErrors(t, p)
 
 	if len(program.Statements) != 3 {
-		t.Fatalf("program.Statements does not contain 3 statements. got %d", len(program.Statements))
+		t.Fatalf(
+			"program.Statements does not contain 3 statements. got %d",
+			len(program.Statements),
+		)
 	}
 
 	for _, stmt := range program.Statements {
@@ -108,7 +111,10 @@ func TestIntegerLiteralExpression(t *testing.T) {
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 	if !ok {
-		t.Fatalf("program.Statement[0] is not of type ast.ExpressionStatement. got=%T", program.Statements[0])
+		t.Fatalf(
+			"program.Statement[0] is not of type ast.ExpressionStatement. got=%T",
+			program.Statements[0],
+		)
 	}
 
 	testIntegerLiteral(t, stmt.Expression, 5)
@@ -138,12 +144,18 @@ func TestParsingPrefixExpression(t *testing.T) {
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("program.Statement[0] is not of type ast.ExpressionStatement. got=%T", program.Statements[0])
+			t.Fatalf(
+				"program.Statement[0] is not of type ast.ExpressionStatement. got=%T",
+				program.Statements[0],
+			)
 		}
 
 		exp, ok := stmt.Expression.(*ast.PrefixExpression)
 		if !ok {
-			t.Fatalf("stmt.Expression is not of type ast.PrexfixExpression. got=%T", stmt.Expression)
+			t.Fatalf(
+				"stmt.Expression is not of type ast.PrexfixExpression. got=%T",
+				stmt.Expression,
+			)
 		}
 
 		if exp.Operator != tt.operator {
@@ -188,7 +200,10 @@ func TestParsingInfixExpression(t *testing.T) {
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("program.Statement[0] is not of type ast.ExpressionStatement. got=%T", program.Statements[0])
+			t.Fatalf(
+				"program.Statement[0] is not of type ast.ExpressionStatement. got=%T",
+				program.Statements[0],
+			)
 		}
 
 		if !testInfixExpression(t, stmt.Expression, tt.operator, tt.leftValue, tt.rightValue) {
@@ -218,7 +233,10 @@ func TestBooleanExpression(t *testing.T) {
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("program.Statement[0] is not of type ast.ExpressionStatement. got=%T", program.Statements[0])
+			t.Fatalf(
+				"program.Statement[0] is not of type ast.ExpressionStatement. got=%T",
+				program.Statements[0],
+			)
 		}
 
 		exp, ok := stmt.Expression.(*ast.BooleanExpression)
@@ -408,7 +426,11 @@ func testLetStatement(t *testing.T, stmt ast.Statement, expectedIdentifier strin
 	}
 
 	if letStmt.Name.TokenLiteral() != expectedIdentifier {
-		t.Errorf("letStmt.Name.TokenLiteral() not '%s'. got=%s", expectedIdentifier, letStmt.Name.TokenLiteral())
+		t.Errorf(
+			"letStmt.Name.TokenLiteral() not '%s'. got=%s",
+			expectedIdentifier,
+			letStmt.Name.TokenLiteral(),
+		)
 		return false
 	}
 
