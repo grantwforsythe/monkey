@@ -28,7 +28,7 @@ jobs:
           go-version: '1.22'
 
       - name: Install golines
-        run: go install github.com/segmentio/golines
+        run: go install github.com/segmentio/golines@v0.12.2
 
       - name: Check format
         run: |
