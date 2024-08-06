@@ -469,6 +469,86 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestFunctionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{input: "fn() {};", expectedParams: []string{}},
+		{input: "fn(x) {};", expectedParams: []string{"x"}},
+		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statement[0] is not of type *ast.ExpressionStatement. got=%T", stmt)
+		}
+
+		function, ok := stmt.Expression.(*ast.FunctionLiteral)
+		if !ok {
+			t.Fatalf("stmt.Expression is not of type *ast.FunctionLiteral. got=%T", function)
+		}
+
+		if len(function.Parameters) != len(tt.expectedParams) {
+			t.Fatalf(
+				"the number of parsed parameters is not equal to %d. got=%d",
+				len(tt.expectedParams),
+				len(function.Parameters),
+			)
+		}
+
+		for i, ident := range tt.expectedParams {
+			testLiteralExpression(t, function.Parameters[i], ident)
+		}
+	}
+}
+
+func TestFunctionLiteralParsing(t *testing.T) {
+	input := "fn(x,y) { x + y; }"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program does not contain 1 statement. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program is not of type *ast.ExpressionStatement. got=%T", stmt)
+	}
+
+	function, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not of type *ast.FunctionLiteral. got=%T", function)
+	}
+
+	if len(function.Parameters) != 2 {
+		t.Fatalf("function does not have 2 parameters. got=%d", len(function.Parameters))
+	}
+
+	testLiteralExpression(t, function.Parameters[0], "x")
+	testLiteralExpression(t, function.Parameters[1], "y")
+
+	if len(function.Body.Statements) != 1 {
+		t.Fatalf("function body does not have 1 statement. got=%d", len(function.Body.Statements))
+	}
+
+	bodyStmt, ok := function.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("body statement is not of type *ast.ExpressionStatement. got=%T", bodyStmt)
+	}
+
+	testInfixExpression(t, bodyStmt.Expression, "+", "x", "y")
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 	if len(errors) == 0 {

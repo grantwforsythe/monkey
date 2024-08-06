@@ -69,6 +69,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.FALSE, p.parseBooleanExpression)
 	p.registerPrefix(token.LPAREN, p.parseGroupExpression)
 	p.registerPrefix(token.IF, p.parseIfExpression)
+	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -81,6 +82,53 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.GT, p.parseInfixExpression)
 
 	return p
+}
+
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	lit := &ast.FunctionLiteral{Token: p.currToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	lit.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	lit.Body = p.parseBlockStatement()
+
+	return lit
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	params := []*ast.Identifier{}
+
+	// Function without any paramets
+	if p.peekToken.Type == token.RPAREN {
+		p.nextToken()
+		return params
+	}
+
+	p.nextToken()
+
+	param := &ast.Identifier{Token: p.currToken, Value: p.currToken.Literal}
+	params = append(params, param)
+
+	for p.peekToken.Type == token.COMMA {
+		// Skip over current token and comma
+		p.nextToken()
+		p.nextToken()
+		param := &ast.Identifier{Token: p.currToken, Value: p.currToken.Literal}
+		params = append(params, param)
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return params
 }
 
 func (p *Parser) parseIfExpression() ast.Expression {
