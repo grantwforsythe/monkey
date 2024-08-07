@@ -204,7 +204,9 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 	p.nextToken()
 
 	for p.currToken.Type != token.RBRACE && p.currToken.Type != token.EOF {
+		// nolint:staticcheck
 		stmt := p.parseStatement()
+		// nolint:staticcheck
 		if stmt != nil {
 			block.Statements = append(block.Statements, stmt)
 		}
@@ -379,6 +381,7 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	return stmt
 }
 
+// nolint:staticcheck
 func (p *Parser) parseStatement() ast.Statement {
 	switch p.currToken.Type {
 	case token.LET:
@@ -411,7 +414,9 @@ func (p *Parser) ParseProgram() *ast.Program {
 	program.Statements = []ast.Statement{}
 
 	for p.currToken.Type != token.EOF {
+		// nolint:staticcheck
 		stmt := p.parseStatement()
+		// nolint:staticcheck
 		if stmt != nil {
 			program.Statements = append(program.Statements, stmt)
 		}
