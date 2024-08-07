@@ -123,37 +123,40 @@ func TestReturnStatment(t *testing.T) {
 
 func TestExpressionStatement(t *testing.T) {
 	tests := []struct {
-		program  *Program
-		expected string
+		exp            *ExpressionStatement
+		expectedToken  string
+		expectedString string
 	}{
-		{program: &Program{
-			Statements: []Statement{
-				&ExpressionStatement{
-					Token: token.Token{Type: token.IDENT, Literal: "5"},
-					Expression: &Identifier{
-						Token: token.Token{Type: token.IDENT, Literal: "5"},
-						Value: "5",
-					},
-				},
+		{exp: &ExpressionStatement{
+			Token: token.Token{Type: token.IDENT, Literal: "5"},
+			Expression: &Identifier{
+				Token: token.Token{Type: token.IDENT, Literal: "5"},
+				Value: "5",
 			},
-		}, expected: "5"},
-		{program: &Program{
-			Statements: []Statement{
-				&ExpressionStatement{
-					Token:      token.Token{Type: token.IDENT, Literal: "5"},
-					Expression: nil,
-				},
-			},
-		}, expected: ""},
+		},
+			expectedToken: "5", expectedString: "5"},
+		{exp: &ExpressionStatement{
+			Token:      token.Token{Type: token.IDENT, Literal: "5"},
+			Expression: nil,
+		},
+			expectedToken: "5", expectedString: ""},
 	}
 
 	for _, tt := range tests {
-		if tt.program.String() != tt.expected {
-			t.Errorf("program.String() wrong. got=%s", tt.program.String())
+		if tt.exp.TokenLiteral() != tt.expectedToken {
+			t.Errorf(
+				"exp.TokenLiteral() is not equal to '%s'. got=%s",
+				tt.expectedToken,
+				tt.exp.TokenLiteral(),
+			)
 		}
 
-		if tt.program.String() != tt.expected {
-			t.Errorf("program.String() wrong. got=%s", tt.program.String())
+		if tt.exp.String() != tt.expectedString {
+			t.Errorf(
+				"exp.String() is not equal to '%s'. got=%s",
+				tt.expectedString,
+				tt.exp.String(),
+			)
 		}
 	}
 
@@ -171,5 +174,180 @@ func TestIntegerLiteralExpression(t *testing.T) {
 
 	if exp.String() != "5" {
 		t.Errorf("exp.String() wrong. got=%s", exp.String())
+	}
+}
+
+func TestPrefixExpression(t *testing.T) {
+	exp := &PrefixExpression{
+		Token:    token.Token{Type: token.BANG, Literal: "!"},
+		Operator: "!",
+		Right: &Identifier{
+			Token: token.Token{Type: token.IDENT, Literal: "foo"},
+			Value: "foo",
+		},
+	}
+
+	if exp.TokenLiteral() != "!" {
+		t.Errorf("exp.TokenLiteral() is not equal to 'foo'. got=%s", exp.TokenLiteral())
+	}
+
+	if exp.String() != "(!foo)" {
+		t.Errorf("exp.String() is not equal to '(!foo)'. got=%s", exp.String())
+	}
+}
+
+func TestInfixExpression(t *testing.T) {
+	exp := &InfixExpression{
+		Token: token.Token{Type: token.PLUS, Literal: "+"},
+		Left: &IntegerLiteral{
+			Token: token.Token{Type: token.INT, Literal: "5"},
+			Value: 5,
+		},
+		Operator: "+",
+		Right: &IntegerLiteral{
+			Token: token.Token{Type: token.INT, Literal: "5"},
+			Value: 5,
+		},
+	}
+
+	if exp.TokenLiteral() != "+" {
+		t.Errorf("exp.TokenLiteral() is not equal to '+'. got=%s", exp.TokenLiteral())
+	}
+
+	if exp.String() != "(5 + 5)" {
+		t.Errorf("exp.String() is not equal to '(!foo)'. got=%s", exp.String())
+	}
+}
+
+func TestBooleanExpression(t *testing.T) {
+	exp := &BooleanExpression{
+		Token: token.Token{Type: token.TRUE, Literal: "true"},
+		Value: true,
+	}
+
+	if exp.TokenLiteral() != "true" {
+		t.Errorf("exp.TokenLiteral() is not equal to 'true'. got=%s", exp.TokenLiteral())
+	}
+
+	if exp.String() != "true" {
+		t.Errorf("exp.String() is not equal to 'true'. got=%s", exp.String())
+	}
+}
+
+func TestBlockStatement(t *testing.T) {
+	stmt := &BlockStatement{
+		Token: token.Token{Type: token.LPAREN, Literal: "("},
+		Statements: []Statement{
+			&LetStatement{
+				Token: token.Token{Type: token.LET, Literal: "let"},
+				Name: &Identifier{
+					Token: token.Token{Type: token.IDENT, Literal: "foo"},
+					Value: "foo",
+				},
+				Value: &Identifier{
+					Token: token.Token{Type: token.IDENT, Literal: "5"},
+					Value: "5",
+				},
+			},
+		},
+	}
+
+	if stmt.TokenLiteral() != "(" {
+		t.Errorf("stmt.TokenLiteral() is not equal to '('. got=%s", stmt.TokenLiteral())
+	}
+
+	if stmt.String() != "let foo = 5;" {
+		t.Errorf("stmt.String() is not equal to 'let foo = 5;'. got=%s", stmt.String())
+	}
+}
+
+func TestIfExpression(t *testing.T) {
+	tests := []struct {
+		exp            *IfExpression
+		expectedToken  string
+		expectedString string
+	}{
+		{exp: &IfExpression{
+			Token: token.Token{Type: token.IF, Literal: "if"},
+			Condition: &InfixExpression{
+				Token: token.Token{Type: token.PLUS, Literal: "<"},
+				Left: &IntegerLiteral{
+					Token: token.Token{Type: token.INT, Literal: "5"},
+					Value: 5,
+				},
+				Operator: "<",
+				Right: &IntegerLiteral{
+					Token: token.Token{Type: token.INT, Literal: "10"},
+					Value: 10,
+				},
+			},
+			Consequence: &BlockStatement{
+				Token: token.Token{Type: token.LPAREN, Literal: "("},
+				Statements: []Statement{
+					&ExpressionStatement{
+						Token: token.Token{Type: token.IDENT, Literal: "5"},
+						Expression: &Identifier{
+							Token: token.Token{Type: token.IDENT, Literal: "5"},
+							Value: "5",
+						},
+					},
+				},
+			},
+		},
+			expectedToken: "if", expectedString: "if(5 < 10) 5"},
+		{exp: &IfExpression{
+			Token: token.Token{Type: token.IF, Literal: "if"},
+			Condition: &InfixExpression{
+				Token: token.Token{Type: token.PLUS, Literal: "<"},
+				Left: &IntegerLiteral{
+					Token: token.Token{Type: token.INT, Literal: "5"},
+					Value: 5,
+				},
+				Operator: "<",
+				Right: &IntegerLiteral{
+					Token: token.Token{Type: token.INT, Literal: "10"},
+					Value: 10,
+				},
+			},
+			Consequence: &BlockStatement{
+				Token: token.Token{Type: token.LPAREN, Literal: "("},
+				Statements: []Statement{
+					&ExpressionStatement{
+						Token: token.Token{Type: token.IDENT, Literal: "5"},
+						Expression: &Identifier{
+							Token: token.Token{Type: token.IDENT, Literal: "5"},
+							Value: "5",
+						},
+					},
+				},
+			},
+			Alternative: &BlockStatement{
+				Token: token.Token{Type: token.LPAREN, Literal: "("},
+				Statements: []Statement{
+					&ExpressionStatement{
+						Token: token.Token{Type: token.IDENT, Literal: "10"},
+						Expression: &Identifier{
+							Token: token.Token{Type: token.IDENT, Literal: "10"},
+							Value: "10",
+						},
+					},
+				},
+			},
+		},
+			expectedToken: "if", expectedString: "if(5 < 10) 5 else 10"},
+	}
+
+	for _, tt := range tests {
+		if tt.exp.TokenLiteral() != "if" {
+			t.Errorf("tt.exp.TokenLiteral() is not equal to 'if'. got=%s", tt.exp.TokenLiteral())
+		}
+
+		if tt.exp.String() != tt.expectedString {
+			t.Errorf(
+				"tt.exp.String() is not equal to '%s'. got=%s",
+				tt.expectedString,
+				tt.exp.String(),
+			)
+		}
 	}
 }
