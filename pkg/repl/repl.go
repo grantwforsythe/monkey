@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/grantwforsythe/monkeylang/pkg/evaluator"
 	"github.com/grantwforsythe/monkeylang/pkg/lexer"
 	"github.com/grantwforsythe/monkeylang/pkg/parser"
 )
@@ -40,9 +41,12 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		_, err := io.WriteString(out, program.String()+"\n")
-		if err != nil {
-			break
+		eval := evaluator.Eval(program)
+		if eval != nil {
+			_, err := io.WriteString(out, eval.Inspect()+"\n")
+			if err != nil {
+				break
+			}
 		}
 	}
 }
