@@ -1,5 +1,7 @@
 package evaluator
 
+// Boolean comparision is faster than Integer comparision because the former case is just doing a pointer comparision
+
 import (
 	"github.com/grantwforsythe/monkeylang/pkg/ast"
 	"github.com/grantwforsythe/monkeylang/pkg/object"
@@ -70,12 +72,10 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 			return FALSE
 		}
 	case "-":
-		if right.Type() != object.INTEGER_OBJ {
-			return NULL
+		if right, ok := right.(*object.Integer); ok {
+			return &object.Integer{Value: -1 * right.Value}
 		}
-
-		value := right.(*object.Integer).Value
-		return &object.Integer{Value: -1 * value}
+		return NULL
 	default:
 		// TODO: Improve as this is prone to cause some grief
 		return NULL
@@ -83,6 +83,59 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 }
 
 func evalInfixExpression(right, left object.Object, operator string) object.Object {
+	switch {
+	case right.Type() == object.INTEGER_OBJ && left.Type() == object.INTEGER_OBJ:
+		return evalIntegerInfixExpression(right, left, operator)
+	// If left and right are boolean objects, they are evaluated to either TRUE or FALSE which are constant pointer
+	case operator == "==":
+		return evalBooleanExpression(left == right)
+	case operator == "!=":
+		return evalBooleanExpression(left != right)
 	// TODO: Implement
-	return NULL
+	default:
+		return NULL
+	}
+}
+
+func evalIntegerInfixExpression(right, left object.Object, operator string) object.Object {
+	rValue := right.(*object.Integer).Value
+	lValue := left.(*object.Integer).Value
+
+	// TODO: Figure out why we need to evaluate left before right
+	// Because you read from left to right
+	switch operator {
+	case "+":
+		return &object.Integer{Value: lValue + rValue}
+	case "-":
+		return &object.Integer{Value: lValue - rValue}
+	case "*":
+		return &object.Integer{Value: lValue * rValue}
+	case "/":
+		return &object.Integer{Value: lValue / rValue}
+	case "<":
+		return evalBooleanExpression(lValue < rValue)
+	case ">":
+		return evalBooleanExpression(lValue > rValue)
+	case "==":
+		return evalBooleanExpression(lValue == rValue)
+	case "!=":
+		return evalBooleanExpression(lValue != rValue)
+	default:
+		return NULL
+	}
+}
+
+func evalBooleanInfixExpresssion(right, left object.Object, operator string) object.Object {
+	rValue := right.(*object.Boolean).Value
+	lValue := left.(*object.Boolean).Value
+
+	switch operator {
+	case "==":
+		return evalBooleanExpression(lValue == rValue)
+	case "!=":
+		return evalBooleanExpression(lValue != rValue)
+	// TODO: Implement
+	default:
+		return NULL
+	}
 }
