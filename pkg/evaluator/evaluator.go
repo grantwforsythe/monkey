@@ -2,7 +2,12 @@ package evaluator
 
 // Boolean comparision is faster than Integer comparision because the former case is just doing a pointer comparision
 
+// When finding a return value in a statement, we are not exiting but instead evaluating everything and only returning
+// the returned value. A better approach would be to exit early (how would that work here?) or treeshake the AST after parsing
+
 import (
+	"fmt"
+
 	"github.com/grantwforsythe/monkeylang/pkg/ast"
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
@@ -17,25 +22,45 @@ func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 
 	case *ast.Program:
-		return evalStatements(node.Statements)
+		return evalProgram(node)
 
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
 
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
+		if isError(right) {
+			return right
+		}
+
 		return evalPrefixExpression(node.Operator, right)
 
 	case *ast.InfixExpression:
-		right := Eval(node.Right)
 		left := Eval(node.Left)
-		return evalInfixExpression(right, left, node.Operator)
+		if isError(left) {
+			return left
+		}
+
+		right := Eval(node.Right)
+		if isError(right) {
+			return right
+		}
+
+		return evalInfixExpression(node.Operator, left, right)
 
 	case *ast.BlockStatement:
-		return evalStatements(node.Statements)
+		return evalBlockStatement(node)
 
 	case *ast.IfExpression:
 		return evalIfExpression(node)
+
+	case *ast.ReturnStatement:
+		value := Eval(node.ReturnValue)
+		if isError(value) {
+			return value
+		}
+
+		return &object.ReturnValue{Value: value}
 
 	case *ast.BooleanExpression:
 		return evalBooleanExpression(node.Value)
@@ -47,11 +72,18 @@ func Eval(node ast.Node) object.Object {
 	return nil
 }
 
-func evalStatements(stmts []ast.Statement) object.Object {
+func evalProgram(program *ast.Program) object.Object {
 	var result object.Object
 
-	for _, stmt := range stmts {
+	for _, stmt := range program.Statements {
 		result = Eval(stmt)
+
+		switch result.(type) {
+		case *object.ReturnValue:
+			return result.(*object.ReturnValue).Value
+		case *object.Error:
+			return result
+		}
 	}
 
 	return result
@@ -81,31 +113,50 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 		if right, ok := right.(*object.Integer); ok {
 			return &object.Integer{Value: -1 * right.Value}
 		}
-		return NULL
+		return newError("unknown operator: -%s", right.Type())
 	default:
-		// TODO: Improve as this is prone to cause some grief
-		return NULL
+		return newError("unknown operator: %s%s", operator, right.Type())
 	}
 }
 
-func evalInfixExpression(right, left object.Object, operator string) object.Object {
+func evalBlockStatement(node *ast.BlockStatement) object.Object {
+	var result object.Object
+
+	for _, stmt := range node.Statements {
+		result = Eval(stmt)
+
+		if result == nil {
+			continue
+		}
+
+		if result.Type() == object.RETURN_VALUE_OBJ || result.Type() == object.ERROR_OBJ {
+			return result
+		}
+	}
+
+	return result
+}
+
+// TODO: Swap function signature so it is left than right
+func evalInfixExpression(operator string, left, right object.Object) object.Object {
 	switch {
-	case right.Type() == object.INTEGER_OBJ && left.Type() == object.INTEGER_OBJ:
-		return evalIntegerInfixExpression(right, left, operator)
-	// If left and right are boolean objects, they are evaluated to either TRUE or FALSE which are constant pointer
+	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+		return evalIntegerInfixExpression(operator, left, right)
 	case operator == "==":
 		return evalBooleanExpression(left == right)
 	case operator == "!=":
 		return evalBooleanExpression(left != right)
-	// TODO: Implement
+	// If left and right are boolean objects, they are evaluated to either TRUE or FALSE which are constant pointer
+	case left.Type() != right.Type():
+		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
 	default:
-		return NULL
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
-func evalIntegerInfixExpression(right, left object.Object, operator string) object.Object {
-	rValue := right.(*object.Integer).Value
+func evalIntegerInfixExpression(operator string, left, right object.Object) object.Object {
 	lValue := left.(*object.Integer).Value
+	rValue := right.(*object.Integer).Value
 
 	// TODO: Figure out why we need to evaluate left before right
 	// Because you read from left to right
@@ -127,20 +178,19 @@ func evalIntegerInfixExpression(right, left object.Object, operator string) obje
 	case "!=":
 		return evalBooleanExpression(lValue != rValue)
 	default:
-		return NULL
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
-func evalBooleanInfixExpresssion(right, left object.Object, operator string) object.Object {
-	rValue := right.(*object.Boolean).Value
+func evalBooleanInfixExpresssion(operator string, left, right object.Object) object.Object {
 	lValue := left.(*object.Boolean).Value
+	rValue := right.(*object.Boolean).Value
 
 	switch operator {
 	case "==":
 		return evalBooleanExpression(lValue == rValue)
 	case "!=":
 		return evalBooleanExpression(lValue != rValue)
-	// TODO: Implement
 	default:
 		return NULL
 	}
@@ -148,6 +198,9 @@ func evalBooleanInfixExpresssion(right, left object.Object, operator string) obj
 
 func evalIfExpression(node *ast.IfExpression) object.Object {
 	condition := Eval(node.Condition)
+	if isError(condition) {
+		return condition
+	}
 
 	if isTruthy(condition) {
 		return Eval(node.Consequence)
@@ -172,4 +225,15 @@ func isTruthy(obj object.Object) bool {
 		// TODO: Handle the case for more object types
 		return obj.(*object.Integer).Value > 0
 	}
+}
+
+func newError(format string, a ...any) *object.Error {
+	return &object.Error{Message: fmt.Sprintf(format, a...)}
+}
+
+func isError(obj object.Object) bool {
+	if obj != nil {
+		return obj.Type() == object.ERROR_OBJ
+	}
+	return false
 }
