@@ -17,7 +17,7 @@ func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 
 	case *ast.Program:
-		return evalStatement(node.Statements)
+		return evalStatements(node.Statements)
 
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
@@ -31,6 +31,12 @@ func Eval(node ast.Node) object.Object {
 		left := Eval(node.Left)
 		return evalInfixExpression(right, left, node.Operator)
 
+	case *ast.BlockStatement:
+		return evalStatements(node.Statements)
+
+	case *ast.IfExpression:
+		return evalIfExpression(node)
+
 	case *ast.BooleanExpression:
 		return evalBooleanExpression(node.Value)
 
@@ -41,7 +47,7 @@ func Eval(node ast.Node) object.Object {
 	return nil
 }
 
-func evalStatement(stmts []ast.Statement) object.Object {
+func evalStatements(stmts []ast.Statement) object.Object {
 	var result object.Object
 
 	for _, stmt := range stmts {
@@ -137,5 +143,33 @@ func evalBooleanInfixExpresssion(right, left object.Object, operator string) obj
 	// TODO: Implement
 	default:
 		return NULL
+	}
+}
+
+func evalIfExpression(node *ast.IfExpression) object.Object {
+	condition := Eval(node.Condition)
+
+	if isTruthy(condition) {
+		return Eval(node.Consequence)
+	} else if node.Alternative != nil {
+		return Eval(node.Alternative)
+	} else {
+		return NULL
+	}
+}
+
+func isTruthy(obj object.Object) bool {
+	switch obj {
+	case NULL:
+		return false
+	case TRUE:
+		return true
+	case FALSE:
+		return false
+	default:
+		// There are currently only 3 object types: Integer, Boolean, and Null
+		// If obj is not of type Boolean or Null, then we know it has to be of type Integer
+		// TODO: Handle the case for more object types
+		return obj.(*object.Integer).Value > 0
 	}
 }
