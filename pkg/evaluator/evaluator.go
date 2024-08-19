@@ -78,11 +78,11 @@ func evalProgram(program *ast.Program) object.Object {
 	for _, stmt := range program.Statements {
 		result = Eval(stmt)
 
-		switch result.(type) {
+		switch obj := result.(type) {
 		case *object.ReturnValue:
-			return result.(*object.ReturnValue).Value
+			return obj.Value
 		case *object.Error:
-			return result
+			return obj
 		}
 	}
 
@@ -179,20 +179,6 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 		return evalBooleanExpression(lValue != rValue)
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
-	}
-}
-
-func evalBooleanInfixExpresssion(operator string, left, right object.Object) object.Object {
-	lValue := left.(*object.Boolean).Value
-	rValue := right.(*object.Boolean).Value
-
-	switch operator {
-	case "==":
-		return evalBooleanExpression(lValue == rValue)
-	case "!=":
-		return evalBooleanExpression(lValue != rValue)
-	default:
-		return NULL
 	}
 }
 
