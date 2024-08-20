@@ -7,6 +7,7 @@ import (
 
 	"github.com/grantwforsythe/monkeylang/pkg/evaluator"
 	"github.com/grantwforsythe/monkeylang/pkg/lexer"
+	"github.com/grantwforsythe/monkeylang/pkg/object"
 	"github.com/grantwforsythe/monkeylang/pkg/parser"
 )
 
@@ -14,6 +15,7 @@ const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
 
 	for {
 		fmt.Fprint(out, PROMPT)
@@ -41,7 +43,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		eval := evaluator.Eval(program)
+		eval := evaluator.Eval(program, env)
 		if eval != nil {
 			_, err := io.WriteString(out, eval.Inspect()+"\n")
 			if err != nil {
