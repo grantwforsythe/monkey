@@ -12,6 +12,8 @@ import (
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
 
+// NOTE: env can be refactored into the package scope so it does not need to be passed around
+
 var (
 	TRUE  = &object.Boolean{Value: true}
 	FALSE = &object.Boolean{Value: false}
@@ -53,6 +55,24 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.IfExpression:
 		return evalIfExpression(node, env)
+
+	case *ast.FunctionLiteral:
+		return &object.Function{Body: node.Body, Env: env, Parameters: node.Parameters}
+
+	case *ast.CallExpression:
+		fn := Eval(node.Function, env)
+		if isError(fn) {
+			return fn
+		}
+
+		// TODO: Figure out why this is handled this way
+		// Evaluate the arguments
+		args := evalExpressions(node.Arguments, env)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+
+		return applyFunction(fn, args)
 
 	case *ast.ReturnStatement:
 		value := Eval(node.ReturnValue, env)
@@ -241,4 +261,41 @@ func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object
 		return newError("identifier not found: %s", node.Value)
 	}
 	return obj
+}
+
+func evalExpressions(expressions []ast.Expression, env *object.Environment) []object.Object {
+	var result []object.Object
+
+	for _, expression := range expressions {
+		eval := Eval(expression, env)
+		if isError(eval) {
+			return []object.Object{eval}
+		}
+
+		result = append(result, eval)
+	}
+
+	return result
+}
+
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("not a function: %s", fn.Type())
+	}
+
+	// Assign the arguments to their corresponding parameter
+	enclosedEnv := object.NewEnclosedEnvironment(function.Env)
+	for paramIdx, param := range function.Parameters {
+		enclosedEnv.Set(param.Value, args[paramIdx])
+	}
+
+	eval := Eval(function.Body, enclosedEnv)
+
+	if result, ok := eval.(*object.ReturnValue); ok {
+		return result.Value
+	}
+
+	// TODO: Figure out what could be returned here
+	return eval
 }
