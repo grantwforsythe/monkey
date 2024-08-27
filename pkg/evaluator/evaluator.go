@@ -65,7 +65,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return fn
 		}
 
-		// TODO: Figure out why this is handled this way
 		// Evaluate the arguments
 		args := evalExpressions(node.Arguments, env)
 		if len(args) == 1 && isError(args[0]) {

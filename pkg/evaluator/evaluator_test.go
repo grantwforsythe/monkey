@@ -248,6 +248,17 @@ func TestFunctionApplication(t *testing.T) {
 		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
 		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
 		{"fn(x) { x; }(5)", 5},
+		{`let fib = fn(n) {
+			if (n == 0) {
+				return 0;
+			}
+			if (n == 1) {
+				return 1;
+			} else {
+				return fib(n - 1) + fib(n - 2);
+			}
+		};
+		fib(8);`, 21},
 	}
 
 	for _, tt := range tests {
