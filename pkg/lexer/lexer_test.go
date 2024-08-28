@@ -25,6 +25,8 @@ let result = add(five, ten);
 
 	5 == 10;
 	5 != 10;
+	"foobar";
+	"'foo'";
 `
 
 	tests := []struct {
@@ -103,6 +105,10 @@ let result = add(five, ten);
 		{token.INT, "5"},
 		{token.NOT_EQ, "!="},
 		{token.INT, "10"},
+		{token.SEMICOLON, ";"},
+		{token.STRING, "foobar"},
+		{token.SEMICOLON, ";"},
+		{token.STRING, "'foo'"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}

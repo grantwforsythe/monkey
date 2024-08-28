@@ -8,12 +8,13 @@ import (
 // TODO: Fully support on Unicode and UTF-8 characters (See Chapter 1.3 for more info)
 
 type Lexer struct {
-	input        string
-	position     int  // current position in input (points to current char)
-	readPosition int  // current reading position in input (after current char)
-	ch           byte // current char under examination
+	input        string // The string to be tokenized
+	position     int    // current position in input (points to current char)
+	readPosition int    // current reading position in input (after current char)
+	ch           byte   // current char under examination
 }
 
+// Create a new lexer
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.readChar()
@@ -33,21 +34,24 @@ func (l *Lexer) readChar() {
 	l.readPosition += 1
 }
 
-// peek the next character without advancing the position of the input string
+// Peek the next character without advancing the position of the input string
 func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
+		// EOF
 		return 0
 	} else {
 		return l.input[l.readPosition]
 	}
 }
 
+// Skip all the consecutive whitespaces
 func (l *Lexer) skipWhiteSpace() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+	for utils.IsWhiteSpace(l.ch) {
 		l.readChar()
 	}
 }
 
+// Read all consecutive digits
 func (l *Lexer) readDigit() string {
 	position := l.position
 	for utils.IsDigit(l.ch) {
@@ -56,7 +60,7 @@ func (l *Lexer) readDigit() string {
 	return l.input[position:l.position]
 }
 
-// It reads an identifier and advances our lexer's postions until it encounters a non-letter character
+// Read an identifier and advance the lexer's postions until it encounters a non-letter character
 func (l *Lexer) readIdentifier() string {
 	position := l.position
 	for utils.IsLetter(l.ch) {
@@ -65,6 +69,21 @@ func (l *Lexer) readIdentifier() string {
 	return l.input[position:l.position]
 }
 
+// TODO: Add support for character escaping, e.g. \", \n, etc
+// Read the contents of a string
+func (l *Lexer) readString() string {
+	// Skip over the first '"'
+	l.readChar()
+
+	position := l.position
+	for l.ch != '"' && l.ch != 0 {
+		l.readChar()
+	}
+
+	return l.input[position:l.position]
+}
+
+// Iterate to the next token
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 	l.skipWhiteSpace()
@@ -108,6 +127,9 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.GT, l.ch)
 	case '-':
 		tok = newToken(token.MINUS, l.ch)
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -130,6 +152,7 @@ func (l *Lexer) NextToken() token.Token {
 	return tok
 }
 
+// Create a new token
 func newToken(tokenType token.TokenType, ch byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(ch)}
 }

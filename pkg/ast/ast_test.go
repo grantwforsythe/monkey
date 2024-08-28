@@ -351,3 +351,18 @@ func TestIfExpression(t *testing.T) {
 		}
 	}
 }
+
+func TestStringLiteralExpression(t *testing.T) {
+	exp := &StringLiteral{
+		Token: token.Token{Type: token.STRING, Literal: "foobar"},
+		Value: "foobar",
+	}
+
+	if exp.TokenLiteral() != "foobar" {
+		t.Errorf("exp.TokenLiteral() wrong. got=%s", exp.TokenLiteral())
+	}
+
+	if exp.String() != "foobar" {
+		t.Errorf("exp.String() wrong. got=%s", exp.String())
+	}
+}
