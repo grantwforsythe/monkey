@@ -97,6 +97,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
+
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
 	}
 
 	return nil
@@ -172,6 +175,8 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 	switch {
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return evalIntegerInfixExpression(operator, left, right)
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return evalStringInfixExpression(operator, left, right)
 	case operator == "==":
 		return evalBooleanExpression(left == right)
 	case operator == "!=":
@@ -188,8 +193,6 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 	lValue := left.(*object.Integer).Value
 	rValue := right.(*object.Integer).Value
 
-	// TODO: Figure out why we need to evaluate left before right
-	// Because you read from left to right
 	switch operator {
 	case "+":
 		return &object.Integer{Value: lValue + rValue}
@@ -203,6 +206,22 @@ func evalIntegerInfixExpression(operator string, left, right object.Object) obje
 		return evalBooleanExpression(lValue < rValue)
 	case ">":
 		return evalBooleanExpression(lValue > rValue)
+	case "==":
+		return evalBooleanExpression(lValue == rValue)
+	case "!=":
+		return evalBooleanExpression(lValue != rValue)
+	default:
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+}
+
+func evalStringInfixExpression(operator string, left, right object.Object) object.Object {
+	lValue := left.(*object.String).Value
+	rValue := right.(*object.String).Value
+
+	switch operator {
+	case "+":
+		return &object.String{Value: lValue + rValue}
 	case "==":
 		return evalBooleanExpression(lValue == rValue)
 	case "!=":
