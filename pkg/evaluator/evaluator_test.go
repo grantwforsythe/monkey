@@ -303,6 +303,38 @@ func TestEvalStringObject(t *testing.T) {
 	}
 }
 
+func TestEvalBuiltinFunctions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
+		{`len("")`, 0},
+		{`len("Hello, World!")`, len("Hello, World!")},
+		{`len(1)`, "argument to `len` not supported. got INTEGER"},
+		{`len()`, "wrong number of arguments. got=0, want=1"},
+		{`len("1", "2")`, "wrong number of arguments. got=2, want=1"},
+	}
+
+	for _, tt := range tests {
+		eval := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, eval, int64(expected))
+		case string:
+			err, ok := eval.(*object.Error)
+			if !ok {
+				t.Errorf("object is not Error. got=%T (%+v)", eval, eval)
+				continue
+			}
+
+			if err.Message != expected {
+				t.Errorf("wrong error message. got=%s, expected=%s", err.Message, expected)
+			}
+		}
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)

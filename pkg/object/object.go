@@ -18,6 +18,7 @@ const (
 	ERROR_OBJ        = "ERROR"
 	FUNCTION_OBJ     = "FUNCTION"
 	STRING_OBJ       = "STRING"
+	BUILTIN_OBJ      = "BUILTIN"
 )
 
 type Object interface {
@@ -91,3 +92,13 @@ type String struct {
 
 func (s *String) Type() ObjectType { return STRING_OBJ }
 func (s *String) Inspect() string  { return s.Value }
+
+// A builtin funcion written in the host language (go) and exposed in the interpreter
+type BuiltinFunction func(a ...Object) Object
+
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+func (f *Builtin) Type() ObjectType { return BUILTIN_OBJ }
+func (f *Builtin) Inspect() string  { return "builtin function" }
