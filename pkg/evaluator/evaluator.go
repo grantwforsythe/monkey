@@ -274,11 +274,15 @@ func isError(obj object.Object) bool {
 }
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
-	obj, ok := env.Get(node.Value)
-	if !ok {
-		return newError("identifier not found: %s", node.Value)
+	if obj, ok := env.Get(node.Value); ok {
+		return obj
 	}
-	return obj
+
+	if builtin, ok := builtin[node.Value]; ok {
+		return builtin
+	}
+
+	return newError("identifier not found: %s", node.Value)
 }
 
 func evalExpressions(expressions []ast.Expression, env *object.Environment) []object.Object {
@@ -297,23 +301,27 @@ func evalExpressions(expressions []ast.Expression, env *object.Environment) []ob
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
+	switch fn := fn.(type) {
+	case *object.Function:
+
+		// Assign the arguments to their corresponding parameter
+		enclosedEnv := object.NewEnclosedEnvironment(fn.Env)
+		for paramIdx, param := range fn.Parameters {
+			enclosedEnv.Set(param.Value, args[paramIdx])
+		}
+
+		eval := Eval(fn.Body, enclosedEnv)
+
+		if result, ok := eval.(*object.ReturnValue); ok {
+			return result.Value
+		}
+
+		// TODO: Figure out what could be returned here
+		return eval
+	// TODO: Figure out why this works here
+	case *object.Builtin:
+		return fn.Fn(args...)
+	default:
 		return newError("not a function: %s", fn.Type())
 	}
-
-	// Assign the arguments to their corresponding parameter
-	enclosedEnv := object.NewEnclosedEnvironment(function.Env)
-	for paramIdx, param := range function.Parameters {
-		enclosedEnv.Set(param.Value, args[paramIdx])
-	}
-
-	eval := Eval(function.Body, enclosedEnv)
-
-	if result, ok := eval.(*object.ReturnValue); ok {
-		return result.Value
-	}
-
-	// TODO: Figure out what could be returned here
-	return eval
 }
