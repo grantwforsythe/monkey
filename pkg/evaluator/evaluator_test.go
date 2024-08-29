@@ -58,7 +58,12 @@ func TestEvalBooleanExpression(t *testing.T) {
 		{"(1 < 2) == true", true},
 		{"(1 < 2) == false", false},
 		{"(1 > 2) == true", false},
-		{"(1 > 2) == false", true}, {"1 != 2", true},
+		{"(1 > 2) == false", true},
+		{"1 != 2", true},
+		{`"HELLO" == "HELLO"`, true},
+		{`"HELLO" == "WORLD"`, false},
+		{`"HELLO" != "WORLD"`, true},
+		{`"HELLO" != "HELLO"`, false},
 	}
 
 	for _, tt := range tests {
@@ -67,7 +72,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
-func TestBangOperator(t *testing.T) {
+func TestEvalBangOperator(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected bool
@@ -87,7 +92,7 @@ func TestBangOperator(t *testing.T) {
 	}
 }
 
-func TestIfElseExpression(t *testing.T) {
+func TestEvalIfElseExpression(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected any
@@ -115,7 +120,7 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
-func TestReturnStatements(t *testing.T) {
+func TestEvalReturnStatements(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected int64
@@ -134,7 +139,7 @@ func TestReturnStatements(t *testing.T) {
 	}
 }
 
-func TestErrorHandling(t *testing.T) {
+func TestEvalErrorHandling(t *testing.T) {
 	tests := []struct {
 		input           string
 		expectedMessage string
@@ -176,6 +181,7 @@ func TestErrorHandling(t *testing.T) {
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
 		{"foobar", "identifier not found: foobar"},
+		{`"Hello" - "World"`, "unknown operator: STRING - STRING"},
 	}
 
 	for _, tt := range tests {
@@ -195,7 +201,7 @@ func TestErrorHandling(t *testing.T) {
 	}
 }
 
-func TestLetStatement(t *testing.T) {
+func TestEvalLetStatement(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected int64
@@ -213,7 +219,7 @@ func TestLetStatement(t *testing.T) {
 	}
 }
 
-func TestFunctionObject(t *testing.T) {
+func TestEvalFunctionObject(t *testing.T) {
 	input := "fn(x) { x + 2; };"
 
 	eval := testEval(input)
@@ -236,8 +242,7 @@ func TestFunctionObject(t *testing.T) {
 	}
 }
 
-// TODO: Add a recursive function as a test
-func TestFunctionApplication(t *testing.T) {
+func TestEvalFunctionApplication(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected int64
@@ -266,7 +271,7 @@ func TestFunctionApplication(t *testing.T) {
 	}
 }
 
-func TestFunctionClosures(t *testing.T) {
+func TestEvalFunctionClosures(t *testing.T) {
 	input := `
 	let x = 100;
 
@@ -280,6 +285,22 @@ func TestFunctionClosures(t *testing.T) {
 	`
 
 	testIntegerObject(t, testEval(input), 17)
+}
+
+func TestEvalStringObject(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+
+		{`"Hello, World!"`, "Hello, World!"},
+		{`"Hello" + ", " + "World!"`, "Hello, World!"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
 }
 
 func testEval(input string) object.Object {
@@ -324,6 +345,21 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != NULL {
 		t.Errorf("obj is not NULL. got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	return true
+}
+
+func testStringObject(t *testing.T, obj object.Object, expected string) bool {
+	result, ok := obj.(*object.String)
+	if !ok {
+		t.Errorf("object is not of type *object.String. got=%T (%+v)", obj, obj)
+		return false
+	}
+
+	if result.Value != expected {
+		t.Errorf("result.Value is not equal to %s. got=%s", expected, result.Value)
 		return false
 	}
 
