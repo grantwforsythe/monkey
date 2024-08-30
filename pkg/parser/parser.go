@@ -93,33 +93,8 @@ func New(l *lexer.Lexer) *Parser {
 
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
 	exp := &ast.CallExpression{Token: p.currToken, Function: function}
-	exp.Arguments = p.parseCallArguments()
+	exp.Arguments = p.parseExpressionList(token.RPAREN)
 	return exp
-}
-
-func (p *Parser) parseCallArguments() []ast.Expression {
-	args := []ast.Expression{}
-
-	// The function call takes no arguments
-	if p.peekToken.Literal == token.RPAREN {
-		p.nextToken()
-		return args
-	}
-
-	p.nextToken()
-	args = append(args, p.parseExpression(LOWEST))
-
-	for p.peekToken.Literal == token.COMMA {
-		p.nextToken()
-		p.nextToken()
-		args = append(args, p.parseExpression(LOWEST))
-	}
-
-	if !p.expectPeek(token.RPAREN) {
-		return nil
-	}
-
-	return args
 }
 
 func (p *Parser) parseFunctionLiteral() ast.Expression {
@@ -441,6 +416,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
+// Parse a slice of nodes separated by commas until an end token.
 func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	list := []ast.Expression{}
 
@@ -456,8 +432,8 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 
 	// TODO: Figure out what is going on here
 	for p.peekToken.Type == token.COMMA {
-		p.nextToken()
-		p.nextToken()
+		p.nextToken() // Current token will be comma
+		p.nextToken() // Current token will be the element
 		list = append(list, p.parseExpression(LOWEST))
 	}
 
