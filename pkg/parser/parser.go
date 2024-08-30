@@ -75,6 +75,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.IF, p.parseIfExpression)
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
+	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -238,6 +239,12 @@ func (p *Parser) parseIdentifier() ast.Expression {
 
 func (p *Parser) parseStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.currToken, Value: p.currToken.Literal}
+}
+
+func (p *Parser) parseArrayLiteral() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.currToken}
+	array.Elements = p.parseExpressionList(token.RBRACKET)
+	return array
 }
 
 func (p *Parser) parsePrefixExpression() ast.Expression {
@@ -432,4 +439,31 @@ func (p *Parser) ParseProgram() *ast.Program {
 	}
 
 	return program
+}
+
+func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
+	list := []ast.Expression{}
+
+	// Exit early as the array is empty
+	if p.peekToken.Type == end {
+		p.nextToken()
+		return list
+	}
+
+	// TODO: Figure out what is going on here
+	p.nextToken()
+	list = append(list, p.parseExpression(LOWEST))
+
+	// TODO: Figure out what is going on here
+	for p.peekToken.Type == token.COMMA {
+		p.nextToken()
+		p.nextToken()
+		list = append(list, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(end) {
+		return nil
+	}
+
+	return list
 }

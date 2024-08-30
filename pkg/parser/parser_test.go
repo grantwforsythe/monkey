@@ -8,7 +8,7 @@ import (
 	"github.com/grantwforsythe/monkeylang/pkg/lexer"
 )
 
-func TestLetStatement(t *testing.T) {
+func TestParsingLetStatement(t *testing.T) {
 	tests := []struct {
 		input              string
 		expectedIdentifier string
@@ -44,7 +44,7 @@ func TestLetStatement(t *testing.T) {
 	}
 }
 
-func TestReturnStatements(t *testing.T) {
+func TestParsingReturnStatements(t *testing.T) {
 	tests := []struct {
 		input         string
 		expectedValue any
@@ -78,7 +78,7 @@ func TestReturnStatements(t *testing.T) {
 	}
 }
 
-func TestIdentifierExpression(t *testing.T) {
+func TestParsingIdentifierExpression(t *testing.T) {
 	input := "foobar;"
 
 	l := lexer.New(input)
@@ -98,7 +98,7 @@ func TestIdentifierExpression(t *testing.T) {
 	testIdentifier(t, stmt.Expression, "foobar")
 }
 
-func TestIntegerLiteralExpression(t *testing.T) {
+func TestParsingIntegerLiteralExpression(t *testing.T) {
 	input := "5;"
 
 	l := lexer.New(input)
@@ -213,7 +213,7 @@ func TestParsingInfixExpression(t *testing.T) {
 	}
 }
 
-func TestBooleanExpression(t *testing.T) {
+func TestParsingBooleanExpression(t *testing.T) {
 	prefixTest := []struct {
 		input string
 		value bool
@@ -251,7 +251,7 @@ func TestBooleanExpression(t *testing.T) {
 	}
 }
 
-func TestOperatorPrecedenceParsing(t *testing.T) {
+func TestParsingOperatorPrecedence(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
@@ -367,7 +367,7 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 	}
 }
 
-func TestIfExpression(t *testing.T) {
+func TestParsingIfExpression(t *testing.T) {
 	input := "if (x < y) { x }"
 
 	l := lexer.New(input)
@@ -421,7 +421,7 @@ func TestIfExpression(t *testing.T) {
 	}
 }
 
-func TestIfElseExpression(t *testing.T) {
+func TestParsingIfElseExpression(t *testing.T) {
 	input := "if (x < y) { x } else { y }"
 
 	l := lexer.New(input)
@@ -482,7 +482,7 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
-func TestFunctionParameterParsing(t *testing.T) {
+func TestParsingFunctionParameter(t *testing.T) {
 	tests := []struct {
 		input          string
 		expectedParams []string
@@ -522,7 +522,7 @@ func TestFunctionParameterParsing(t *testing.T) {
 	}
 }
 
-func TestFunctionLiteralParsing(t *testing.T) {
+func TestParsingFunctionLiteral(t *testing.T) {
 	input := "fn(x,y) { x + y; }"
 	l := lexer.New(input)
 	p := New(l)
@@ -562,7 +562,7 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	testInfixExpression(t, bodyStmt.Expression, "+", "x", "y")
 }
 
-func TestCallExpressionParsing(t *testing.T) {
+func TestParsingCallExpression(t *testing.T) {
 	input := "add(1, 2 * 3, 4 + 5);"
 
 	l := lexer.New(input)
@@ -601,7 +601,7 @@ func TestCallExpressionParsing(t *testing.T) {
 	testInfixExpression(t, exp.Arguments[2], "+", 4, 5)
 }
 
-func TestCallExpressionParameterParsing(t *testing.T) {
+func TestParsingCallExpressionParameter(t *testing.T) {
 	tests := []struct {
 		input         string
 		expectedIdent string
@@ -655,6 +655,69 @@ func TestCallExpressionParameterParsing(t *testing.T) {
 		}
 	}
 }
+
+func TestParsingStringLiteral(t *testing.T) {
+	input := `"Hello, World!";`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	literal, ok := stmt.Expression.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("exp not *ast.StringLiteral. got=%T", stmt.Expression)
+	}
+
+	if literal.Value != "Hello, World!" {
+		t.Fatalf("literal.Value is not equal to 'Hello, World!'. got=%s", literal.Value)
+	}
+}
+
+func TestParsingArrayLiteral(t *testing.T) {
+	input := "[1, 2 * 2, 3 + 3]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	array, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("exp not ast.ArrayLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(array.Elements) != 3 {
+		t.Fatalf("len(array.Elements) is not equal to 3. got=%d", len(array.Elements))
+	}
+
+	testIntegerLiteral(t, array.Elements[0], 1)
+	testInfixExpression(t, array.Elements[1], "*", 2, 2)
+	testInfixExpression(t, array.Elements[2], "+", 3, 3)
+
+}
+
+func TestParsingEmptyArrayLiteral(t *testing.T) {
+	input := "[]"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	array, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("exp not ast.ArrayLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(array.Elements) != 0 {
+		t.Fatalf("len(array.Elements) is not equal to 0. got=%d", len(array.Elements))
+	}
+}
+
 func checkParserErrors(t *testing.T, p *Parser) {
 	errors := p.Errors()
 	if len(errors) == 0 {
@@ -795,23 +858,4 @@ func testInfixExpression(t *testing.T, exp ast.Expression, operator string, left
 	}
 
 	return true
-}
-
-func TestStringLiteral(t *testing.T) {
-	input := `"Hello, World!";`
-
-	l := lexer.New(input)
-	p := New(l)
-	program := p.ParseProgram()
-	checkParserErrors(t, p)
-
-	stmt := program.Statements[0].(*ast.ExpressionStatement)
-	literal, ok := stmt.Expression.(*ast.StringLiteral)
-	if !ok {
-		t.Fatalf("exp not *ast.StringLiteral. got=%T", stmt.Expression)
-	}
-
-	if literal.Value != "Hello, World!" {
-		t.Fatalf("literal.Value is not equal to 'Hello, World!'. got=%s", literal.Value)
-	}
 }
