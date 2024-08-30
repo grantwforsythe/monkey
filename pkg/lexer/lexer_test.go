@@ -27,6 +27,7 @@ let result = add(five, ten);
 	5 != 10;
 	"foobar";
 	"'foo'";
+	[1, 2];
 `
 
 	tests := []struct {
@@ -110,7 +111,12 @@ let result = add(five, ten);
 		{token.SEMICOLON, ";"},
 		{token.STRING, "'foo'"},
 		{token.SEMICOLON, ";"},
-		{token.EOF, ""},
+		{token.LBRACKET, "["},
+		{token.INT, "1"},
+		{token.COMMA, ","},
+		{token.INT, "2"},
+		{token.RBRACKET, "]"},
+		{token.SEMICOLON, ";"},
 	}
 
 	l := New(input)
