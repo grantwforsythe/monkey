@@ -87,7 +87,7 @@ var builtin = map[string]*object.Builtin{
 				return NULL
 			}
 
-			elements := make([]object.Object, length-1, length-1)
+			elements := make([]object.Object, length-1)
 
 			if length == 1 {
 				return &object.Array{Elements: elements}
@@ -114,12 +114,9 @@ var builtin = map[string]*object.Builtin{
 
 			length := len(array.Elements)
 
-			elements := make([]object.Object, length, length)
+			elements := make([]object.Object, length)
 			copy(elements, array.Elements)
-
-			for _, arg := range args[1:] {
-				elements = append(elements, arg)
-			}
+			elements = append(elements, args[1:]...)
 
 			return &object.Array{Elements: elements}
 		},
