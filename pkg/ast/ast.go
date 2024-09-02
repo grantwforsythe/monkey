@@ -297,3 +297,25 @@ func (al *ArrayLiteral) String() string {
 
 	return out.String()
 }
+
+// Access the index of an array.
+// <expression>[<expression>]
+type IndexEpression struct {
+	Token token.Token // The '[' token
+	Left  Expression
+	Index Expression
+}
+
+func (ie *IndexEpression) expressionNode()      {}
+func (ie *IndexEpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *IndexEpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(ie.Left.String())
+	out.WriteString("[")
+	out.WriteString(ie.Index.String())
+	out.WriteString("])")
+
+	return out.String()
+}
