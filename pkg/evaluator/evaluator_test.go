@@ -303,7 +303,7 @@ func TestEvalStringObject(t *testing.T) {
 	}
 }
 
-func TestEvalBuiltinFunctions(t *testing.T) {
+func TestEvalBuiltinFunctionLen(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected any
@@ -316,11 +316,72 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 		{`len([])`, 0},
 		{`len([1, 2, 3])`, 3},
 		{`len([1, 2 * 5, 3])`, 3},
+	}
+
+	for _, tt := range tests {
+		eval := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, eval, int64(expected))
+		case string:
+			err, ok := eval.(*object.Error)
+			if !ok {
+				t.Errorf("object is not Error. got=%T (%+v)", eval, eval)
+				continue
+			}
+
+			if err.Message != expected {
+				t.Errorf("wrong error message. got=%s, expected=%s", err.Message, expected)
+			}
+		case *object.Null:
+			testNullObject(t, eval)
+		default:
+			t.Errorf("object type is invalid. got=%T, expected=INTEGER, STRING, or NULL", eval)
+		}
+	}
+}
+
+func TestEvalBuiltinFunctionFirst(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
 		{`first([1, 2, 3])`, 1},
 		{`first([])`, NULL},
 		{`first()`, "wrong number of arguments. got=0, want=1"},
 		{`first(1)`, "'first' only accepts an array as an argument. got=INTEGER"},
-		{`last([1, 2, 3])`, 3},
+	}
+
+	for _, tt := range tests {
+		eval := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, eval, int64(expected))
+		case string:
+			err, ok := eval.(*object.Error)
+			if !ok {
+				t.Errorf("object is not Error. got=%T (%+v)", eval, eval)
+				continue
+			}
+
+			if err.Message != expected {
+				t.Errorf("wrong error message. got=%s, expected=%s", err.Message, expected)
+			}
+		case *object.Null:
+			testNullObject(t, eval)
+		default:
+			t.Errorf("object type is invalid. got=%T, expected=INTEGER, STRING, or NULL", eval)
+		}
+	}
+}
+
+func TestEvalBuiltinFunctionLast(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{
 		{`last([])`, NULL},
 		{`last()`, "wrong number of arguments. got=0, want=1"},
 		{`last(1)`, "'last' only accepts an array as an argument. got=INTEGER"},
@@ -342,6 +403,167 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 			if err.Message != expected {
 				t.Errorf("wrong error message. got=%s, expected=%s", err.Message, expected)
 			}
+		case *object.Null:
+			testNullObject(t, eval)
+		default:
+			t.Errorf("object type is invalid. got=%T, expected=INTEGER, STRING, or NULL", eval)
+		}
+	}
+}
+
+func TestEvalBuiltinFunctionRest(t *testing.T) {
+	tests := []struct {
+		input    string
+		inital   any
+		expected any
+	}{
+		{
+			`rest([1, 2, 3])`,
+			object.Array{
+				Elements: []object.Object{
+					&object.Integer{Value: 1},
+					&object.Integer{Value: 2},
+					&object.Integer{Value: 3},
+				},
+			},
+			&object.Array{
+				Elements: []object.Object{&object.Integer{Value: 2}, &object.Integer{Value: 3}},
+			},
+		},
+		{`rest([1])`,
+			object.Array{Elements: []object.Object{&object.Integer{Value: 1}}},
+			&object.Array{Elements: make([]object.Object, 0)}},
+		{`rest([])`, object.Array{Elements: make([]object.Object, 0)}, NULL},
+		// The initial value does not matter here as we are just checking the error message
+		{`rest([1], [2])`, NULL, "wrong number of arguments. got=2, want=1"},
+		{
+			`rest(1)`,
+			&object.Integer{Value: 1},
+			"'rest' only accepts an array as an argument. got=INTEGER",
+		},
+	}
+
+	for _, tt := range tests {
+		eval := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case *object.Array:
+			array, ok := eval.(*object.Array)
+			if !ok {
+				t.Errorf("object is not array. got=%T (%+v)", eval, eval)
+				continue
+			}
+
+			if len(array.Elements) != len(expected.Elements) {
+				t.Errorf("The number of elements does not match the expected %d. got=%d", len(expected.Elements), len(array.Elements))
+				continue
+			}
+
+			// TODO: Refactor by implementing the compare interface so we can leverage the slice package
+			for i := range len(array.Elements) {
+				// This will always be of type int for testing purposes
+				expectedValue := int64(expected.Elements[i].(*object.Integer).Value)
+				testIntegerObject(t, array.Elements[i], expectedValue)
+			}
+		case string:
+			err, ok := eval.(*object.Error)
+			if !ok {
+				t.Errorf("object is not Error. got=%T (%+v)", eval, eval)
+				continue
+			}
+
+			if err.Message != expected {
+				t.Errorf("wrong error message. got=%s, expected=%s", err.Message, expected)
+			}
+		case *object.Null:
+			testNullObject(t, eval)
+		default:
+			t.Errorf("object type is invalid. got=%T, expected=INTEGER, STRING, or NULL", eval)
+		}
+	}
+}
+
+func TestEvalBuiltinFunctionPush(t *testing.T) {
+	tests := []struct {
+		input    string
+		inital   any
+		expected any
+	}{
+		{
+			`push([1], 2, 3)`,
+			object.Array{
+				Elements: []object.Object{&object.Integer{Value: 1}},
+			},
+			&object.Array{
+				Elements: []object.Object{
+					&object.Integer{Value: 1},
+					&object.Integer{Value: 2},
+					&object.Integer{Value: 3},
+				},
+			},
+		},
+		{
+			`push([], 2, 3)`,
+			object.Array{
+				Elements: []object.Object{},
+			},
+			&object.Array{
+				Elements: []object.Object{
+					&object.Integer{Value: 2},
+					&object.Integer{Value: 3},
+				},
+			},
+		},
+		{
+			`push([1])`,
+			object.Array{
+				Elements: []object.Object{&object.Integer{Value: 1}},
+			},
+			"wrong number of arguments. got=1, want=>2",
+		},
+		{
+			`push(1, 1)`,
+			&object.Integer{Value: 1},
+			"the first argument needs to be of type ARRAY. got=INTEGER",
+		},
+	}
+
+	for _, tt := range tests {
+		eval := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case *object.Array:
+			array, ok := eval.(*object.Array)
+			if !ok {
+				t.Errorf("object is not array. got=%T (%+v)", eval, eval)
+				continue
+			}
+
+			if len(array.Elements) != len(expected.Elements) {
+				t.Errorf("The number of eval does not match the expected %d. got=%d", len(expected.Elements), len(array.Elements))
+				continue
+			}
+
+			// TODO: Refactor by implementing the compare interface so we can leverage the slice package
+			for i := range len(array.Elements) {
+				// This will always be of type int for testing purposes
+				expectedValue := int64(expected.Elements[i].(*object.Integer).Value)
+				testIntegerObject(t, array.Elements[i], expectedValue)
+			}
+		case string:
+			err, ok := eval.(*object.Error)
+			if !ok {
+				t.Errorf("object is not Error. got=%T (%+v)", eval, eval)
+				continue
+			}
+
+			if err.Message != expected {
+				t.Errorf("wrong error message. got=%s, expected=%s", err.Message, expected)
+			}
+		case *object.Null:
+			testNullObject(t, eval)
+		default:
+			t.Errorf("object type is invalid. got=%T, expected=INTEGER, STRING, or NULL", eval)
 		}
 	}
 }

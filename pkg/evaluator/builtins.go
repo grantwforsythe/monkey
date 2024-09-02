@@ -67,4 +67,61 @@ var builtin = map[string]*object.Builtin{
 			return array.Elements[length-1]
 		},
 	},
+	"rest": {
+		// Return a copy of the array with the first element removed.
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments. got=%d, want=1", len(args))
+			}
+
+			array, ok := args[0].(*object.Array)
+			if !ok {
+				return newError(
+					"'rest' only accepts an array as an argument. got=%s",
+					args[0].Type(),
+				)
+			}
+
+			length := len(array.Elements)
+			if length == 0 {
+				return NULL
+			}
+
+			elements := make([]object.Object, length-1, length-1)
+
+			if length == 1 {
+				return &object.Array{Elements: elements}
+			}
+
+			copy(elements, array.Elements[1:])
+			return &object.Array{Elements: elements}
+		},
+	},
+	"push": {
+		// Return a cloned array with a new value appended to it.
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) < 2 {
+				return newError("wrong number of arguments. got=%d, want=>2", len(args))
+			}
+
+			array, ok := args[0].(*object.Array)
+			if !ok {
+				return newError(
+					"the first argument needs to be of type ARRAY. got=%s",
+					args[0].Type(),
+				)
+			}
+
+			length := len(array.Elements)
+
+			elements := make([]object.Object, length, length)
+			copy(elements, array.Elements)
+
+			for _, arg := range args[1:] {
+				elements = append(elements, arg)
+			}
+
+			return &object.Array{Elements: elements}
+		},
+	},
 }
