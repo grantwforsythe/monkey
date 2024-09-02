@@ -310,9 +310,20 @@ func TestEvalBuiltinFunctions(t *testing.T) {
 	}{
 		{`len("")`, 0},
 		{`len("Hello, World!")`, len("Hello, World!")},
-		{`len(1)`, "argument to `len` not supported. got INTEGER"},
+		{`len(1)`, "argument to `len` not supported. got=INTEGER"},
 		{`len()`, "wrong number of arguments. got=0, want=1"},
 		{`len("1", "2")`, "wrong number of arguments. got=2, want=1"},
+		{`len([])`, 0},
+		{`len([1, 2, 3])`, 3},
+		{`len([1, 2 * 5, 3])`, 3},
+		{`first([1, 2, 3])`, 1},
+		{`first([])`, NULL},
+		{`first()`, "wrong number of arguments. got=0, want=1"},
+		{`first(1)`, "'first' only accepts an array as an argument. got=INTEGER"},
+		{`last([1, 2, 3])`, 3},
+		{`last([])`, NULL},
+		{`last()`, "wrong number of arguments. got=0, want=1"},
+		{`last(1)`, "'last' only accepts an array as an argument. got=INTEGER"},
 	}
 
 	for _, tt := range tests {
