@@ -11,6 +11,7 @@ import (
 
 // TODO: Document package
 
+// Precedence of operators
 const (
 	_ int = iota
 	LOWEST
@@ -23,6 +24,7 @@ const (
 	INDEX       // array[index]
 )
 
+// Map of tokens to their respective precedence, i.e. BEDMAS
 var precedences = map[token.TokenType]int{
 	token.EQ:       EQUALS,
 	token.NOT_EQ:   EQUALS,
@@ -50,14 +52,15 @@ type (
 )
 
 type Parser struct {
-	l              *lexer.Lexer
-	currToken      token.Token
-	peekToken      token.Token
-	prefixParseFns map[token.TokenType]prefixParseFn
-	infixParseFns  map[token.TokenType]infixParseFn
-	errors         []errorString
+	l              *lexer.Lexer                      // Lexer
+	currToken      token.Token                       // Current token
+	peekToken      token.Token                       // The next current token
+	prefixParseFns map[token.TokenType]prefixParseFn // Map of tokens to prefix functions
+	infixParseFns  map[token.TokenType]infixParseFn  // Map of tokens to infix functions
+	errors         []errorString                     // Slice of all parser errors
 }
 
+// Create a new parser from a lexer registering all of the prefix and infix functions.
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{l: l, errors: []errorString{}}
 
@@ -78,6 +81,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.FUNCTION, p.parseFunctionLiteral)
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
+	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -92,6 +96,27 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
 
 	return p
+}
+
+func (p *Parser) ParseProgram() *ast.Program {
+	program := &ast.Program{}
+	program.Statements = []ast.Statement{}
+
+	for p.currToken.Type != token.EOF {
+		// nolint:staticcheck
+		stmt := p.parseStatement()
+		// nolint:staticcheck
+		if stmt != nil {
+			program.Statements = append(program.Statements, stmt)
+		}
+		p.nextToken()
+	}
+
+	return program
+}
+
+func (p *Parser) Errors() []errorString {
+	return p.errors
 }
 
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
@@ -275,10 +300,6 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 	p.infixParseFns[tokenType] = fn
 }
 
-func (p *Parser) Errors() []errorString {
-	return p.errors
-}
-
 func (p *Parser) peekError(t token.TokenType) {
 	msg := errorString{s: fmt.Sprintf("expected next token to be %s. got=%s", t, p.peekToken.Type)}
 	p.errors = append(p.errors, msg)
@@ -417,23 +438,6 @@ func (p *Parser) curPrecedence() int {
 	return LOWEST
 }
 
-func (p *Parser) ParseProgram() *ast.Program {
-	program := &ast.Program{}
-	program.Statements = []ast.Statement{}
-
-	for p.currToken.Type != token.EOF {
-		// nolint:staticcheck
-		stmt := p.parseStatement()
-		// nolint:staticcheck
-		if stmt != nil {
-			program.Statements = append(program.Statements, stmt)
-		}
-		p.nextToken()
-	}
-
-	return program
-}
-
 // Parse a slice of nodes separated by commas until an end token.
 func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	list := []ast.Expression{}
@@ -460,4 +464,35 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	}
 
 	return list
+}
+
+func (p *Parser) parseHashLiteral() ast.Expression {
+	hash := &ast.HashLiteral{Token: p.currToken}
+	hash.Pairs = make(map[ast.Expression]ast.Expression)
+
+	for p.peekToken.Type != token.RBRACE {
+		// Skip over '{' initially and ',' after each iteration
+		p.nextToken()
+		key := p.parseExpression(LOWEST)
+
+		if !p.expectPeek(token.COLON) {
+			return nil
+		}
+
+		// Skip over ':'
+		p.nextToken()
+		value := p.parseExpression(LOWEST)
+
+		hash.Pairs[key] = value
+
+		// Ensure that we are not at the end of the hash literal before ensuring that the next token is a comma
+		if p.peekToken.Type != token.RBRACE && !p.expectPeek(token.COMMA) {
+			return nil
+		}
+	}
+
+	// Skip over '}'
+	p.nextToken()
+
+	return hash
 }
