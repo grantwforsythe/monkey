@@ -28,6 +28,7 @@ let result = add(five, ten);
 	"foobar";
 	"'foo'";
 	[1, 2];
+	{"test": 42};
 `
 
 	tests := []struct {
@@ -117,6 +118,13 @@ let result = add(five, ten);
 		{token.INT, "2"},
 		{token.RBRACKET, "]"},
 		{token.SEMICOLON, ";"},
+		{token.LBRACE, "{"},
+		{token.STRING, "test"},
+		{token.COLON, ":"},
+		{token.INT, "42"},
+		{token.RBRACE, "}"},
+		{token.SEMICOLON, ";"},
+		{token.EOF, ""},
 	}
 
 	l := New(input)
