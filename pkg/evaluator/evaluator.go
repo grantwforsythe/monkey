@@ -122,6 +122,27 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 
 		return evalIndexExpression(left, index)
+
+	case *ast.HashLiteral:
+		hash := &object.Hash{}
+		hash.Pairs = make(map[object.HashKey]object.HashPair)
+
+		for key, value := range node.Pairs {
+			keyObj := Eval(key, env)
+			valueObj := Eval(value, env)
+
+			keyHash, ok := keyObj.(object.Hashable)
+			if !ok {
+				return newError("%T can not be used as a key as it does not implement the hashable interface", keyObj)
+			}
+
+			hash.Pairs[keyHash.HashKey()] = object.HashPair{
+				Key:   keyObj,
+				Value: valueObj,
+			}
+		}
+
+		return hash
 	}
 
 	return nil
