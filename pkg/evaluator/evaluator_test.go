@@ -182,6 +182,11 @@ func TestEvalErrorHandling(t *testing.T) {
 		},
 		{"foobar", "identifier not found: foobar"},
 		{`"Hello" - "World"`, "unknown operator: STRING - STRING"},
+		{
+			`{first([]): 1}`,
+			"unhashable key: NULL",
+		},
+		{`{"a": 1}[fn(x) { x }]`, "unhashable key: FUNCTION"},
 	}
 
 	for _, tt := range tests {
@@ -685,21 +690,51 @@ func TestEvalHashLiterals(t *testing.T) {
 	}
 }
 
-func TestEvalNonHashableKey(t *testing.T) {
-	// TODO: Replace will `null` when it is exposed
-	input := `{first([]): 1}` // There currently isn't a way to use null in monkey as it thinks it is an identifier
-
-	evaluated := testEval(input)
-	result, ok := evaluated.(*object.Error)
-	if !ok {
-		t.Fatalf("Eval didn't return Error. got=%T (%+v)", evaluated, evaluated)
+func TestHashIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			`{"foo": 5}["foo"]`,
+			5,
+		},
+		{
+			`{"foo": 5}["bar"]`,
+			nil,
+		},
+		{
+			`let key = "foo"; {"foo": 5}[key]`,
+			5,
+		},
+		{
+			`{}["foo"]`,
+			nil,
+		},
+		{
+			`{5: 5}[5]`,
+			5,
+		},
+		{
+			`{true: 5}[true]`,
+			5,
+		},
+		{
+			`{false: 5}[false]`,
+			5,
+		},
 	}
 
-	if result.Message != "*object.Null can not be used as a key as it does not implement the hashable interface" {
-		t.Fatalf("expected error much for an unhashable key. got=%s", result.Message)
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
 	}
 }
-
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
