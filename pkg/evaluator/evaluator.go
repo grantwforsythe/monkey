@@ -129,11 +129,18 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 
 		for key, value := range node.Pairs {
 			keyObj := Eval(key, env)
+			if isError(keyObj) {
+				return keyObj
+			}
+
 			valueObj := Eval(value, env)
+			if isError(valueObj) {
+				return valueObj
+			}
 
 			keyHash, ok := keyObj.(object.Hashable)
 			if !ok {
-				return newError("%T can not be used as a key as it does not implement the hashable interface", keyObj)
+				return newError("unhashable key: %s", keyObj.Type())
 			}
 
 			hash.Pairs[keyHash.HashKey()] = object.HashPair{
@@ -381,6 +388,20 @@ func evalIndexExpression(left, index object.Object) object.Object {
 		}
 
 		return array.Elements[idx]
+	case left.Type() == object.HASH_OBJ:
+		left := left.(*object.Hash)
+
+		idx, ok := index.(object.Hashable)
+		if !ok {
+			return newError("unhashable key: %s", index.Type())
+		}
+
+		value, ok := left.Pairs[idx.HashKey()]
+		if !ok {
+			return NULL
+		}
+
+		return value.Value
 	default:
 		return newError("index operator not supported: %s", left.Type())
 	}
