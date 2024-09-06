@@ -9,8 +9,6 @@ docker run -i monkey
 ```
 
 ## TODO
-- [ ] Interpreter
-- [ ] Macros
-- [ ] Web app to play with the interpreter
-- [ ] Compiler
-- [ ] LSP
+- [] Web app to play with the interpreter
+- [] Compiler
+- [] LSP
