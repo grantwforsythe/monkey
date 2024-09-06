@@ -1,4 +1,4 @@
-package utils
+package strings
 
 // Determine if a character is whitespace or not
 func IsWhiteSpace(ch byte) bool {

@@ -1,8 +1,8 @@
 package lexer
 
 import (
+	"github.com/grantwforsythe/monkeylang/pkg/strings"
 	"github.com/grantwforsythe/monkeylang/pkg/token"
-	"github.com/grantwforsythe/monkeylang/pkg/utils"
 )
 
 // TODO: Fully support on Unicode and UTF-8 characters (See Chapter 1.3 for more info)
@@ -47,7 +47,7 @@ func (l *Lexer) peekChar() byte {
 
 // Skip all the consecutive whitespaces.
 func (l *Lexer) skipWhiteSpace() {
-	for utils.IsWhiteSpace(l.ch) {
+	for strings.IsWhiteSpace(l.ch) {
 		l.readChar()
 	}
 }
@@ -55,7 +55,7 @@ func (l *Lexer) skipWhiteSpace() {
 // Read all consecutive digits.
 func (l *Lexer) readDigit() string {
 	position := l.position
-	for utils.IsDigit(l.ch) {
+	for strings.IsDigit(l.ch) {
 		l.readChar()
 	}
 	return l.input[position:l.position]
@@ -64,7 +64,7 @@ func (l *Lexer) readDigit() string {
 // Read an identifier and advance the lexer's postions until it encounters a non-letter character.
 func (l *Lexer) readIdentifier() string {
 	position := l.position
-	for utils.IsLetter(l.ch) {
+	for strings.IsLetter(l.ch) {
 		l.readChar()
 	}
 	return l.input[position:l.position]
@@ -141,12 +141,12 @@ func (l *Lexer) NextToken() token.Token {
 		tok.Literal = ""
 		tok.Type = token.EOF
 	default:
-		if utils.IsLetter(l.ch) {
+		if strings.IsLetter(l.ch) {
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
 			// Exit early because we do not want to call readChar twice
 			return tok
-		} else if utils.IsDigit(l.ch) {
+		} else if strings.IsDigit(l.ch) {
 			tok.Literal = l.readDigit()
 			tok.Type = token.INT
 			return tok
