@@ -644,6 +644,62 @@ func TestArrayIndexExpressions(t *testing.T) {
 	}
 }
 
+// TODO: Test for duplicate key
+func TestEvalHashLiterals(t *testing.T) {
+	input := `let two = "two";
+    {
+        "one": 10 - 9,
+        two: 1 + 1,
+        "thr" + "ee": 6 / 2,
+        4: 4,
+        true: 5,
+        false: 6
+    }`
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Hash)
+	if !ok {
+		t.Fatalf("Eval didn't return Hash. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	expected := map[object.HashKey]int64{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		TRUE.HashKey():                             5,
+		FALSE.HashKey():                            6,
+	}
+
+	if len(result.Pairs) != len(expected) {
+		t.Fatalf("Hash has wrong num of pairs. got=%d", len(result.Pairs))
+	}
+
+	for expectedKey, expectedValue := range expected {
+		pair, ok := result.Pairs[expectedKey]
+		if !ok {
+			t.Errorf("no pair for given key in Pairs")
+		}
+
+		testIntegerObject(t, pair.Value, expectedValue)
+	}
+}
+
+func TestEvalNonHashableKey(t *testing.T) {
+	// TODO: Replace will `null` when it is exposed
+	input := `{first([]): 1}` // There currently isn't a way to use null in monkey as it thinks it is an identifier
+
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Error)
+	if !ok {
+		t.Fatalf("Eval didn't return Error. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if result.Message != "*object.Null can not be used as a key as it does not implement the hashable interface" {
+		t.Fatalf("expected error much for an unhashable key. got=%s", result.Message)
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
