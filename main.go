@@ -26,8 +26,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Printf("Hello %s! This is the Monkey programming language!\n", user.Username)
 	fmt.Print(MONKEY_FACE)
-	fmt.Printf("Feel free to type in commands\n")
+	fmt.Printf("Feel free to type in commands.\n")
+	fmt.Printf("Call `quit()` to quit.\n")
+
 	repl.Start(os.Stdin, os.Stdout)
 }

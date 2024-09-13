@@ -1,6 +1,8 @@
 package evaluator
 
 import (
+	"os"
+
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
 
@@ -119,6 +121,12 @@ var builtin = map[string]*object.Builtin{
 			elements = append(elements, args[1:]...)
 
 			return &object.Array{Elements: elements}
+		},
+	},
+	"quit": {
+		Fn: func(args ...object.Object) object.Object {
+			os.Exit(0)
+			return &object.Null{}
 		},
 	},
 }
