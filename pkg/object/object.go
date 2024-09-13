@@ -187,6 +187,7 @@ func (h *Hash) Inspect() string {
 	return out.String()
 }
 
+// An unevaluated AST node
 type Quote struct {
 	Node ast.Node
 }
