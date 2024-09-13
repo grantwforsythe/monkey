@@ -60,6 +60,13 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.Function{Body: node.Body, Env: env, Parameters: node.Parameters}
 
 	case *ast.CallExpression:
+		// TODO: Refactor this
+		// Skip evaluation of argument when calling `quote`
+		// Quote only accepts one argument
+		if node.Function.TokenLiteral() == "quote" {
+			return &object.Quote{Node: node.Arguments[0]}
+		}
+
 		fn := Eval(node.Function, env)
 		if isError(fn) {
 			return fn
