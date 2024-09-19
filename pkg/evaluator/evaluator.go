@@ -64,7 +64,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		// Skip evaluation of argument when calling `quote`
 		// Quote only accepts one argument
 		if node.Function.TokenLiteral() == "quote" {
-			return &object.Quote{Node: node.Arguments[0]}
+			return quote(node.Arguments[0], env)
 		}
 
 		fn := Eval(node.Function, env)

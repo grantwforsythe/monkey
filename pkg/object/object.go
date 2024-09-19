@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"hash/fnv"
+	"strconv"
 	"strings"
 
 	"github.com/grantwforsythe/monkeylang/pkg/ast"
+	"github.com/grantwforsythe/monkeylang/pkg/token"
 )
 
 type ObjectType string
@@ -32,6 +34,12 @@ type Object interface {
 	Inspect() string
 }
 
+// Represents an Object that is convertible
+type Convertible interface {
+	// Convert object to resulting AST Node
+	ToNode() ast.Node
+}
+
 // Represents a hash key for an object
 type HashKey struct {
 	Type  ObjectType
@@ -53,6 +61,12 @@ func (i *Integer) Type() ObjectType { return INTEGER_OBJ }
 func (i *Integer) Inspect() string  { return fmt.Sprintf("%d", i.Value) }
 func (i *Integer) HashKey() HashKey {
 	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
+}
+func (i *Integer) ToNode() ast.Node {
+	return &ast.IntegerLiteral{
+		Token: token.Token{Type: token.INT, Literal: strconv.FormatInt(i.Value, 10)},
+		Value: i.Value,
+	}
 }
 
 type Boolean struct {

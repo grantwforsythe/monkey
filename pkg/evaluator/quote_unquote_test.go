@@ -46,7 +46,8 @@ func TestQuoteUnqote(t *testing.T) {
 	}{
 		{"quote(unquote(4))", "4"},
 		{"quote(unquote(4 + 4))", "8"},
-		{"quote(8 + unquote(4 + 4))", "8 + 8"},
+		{"quote(8 + unquote(4 + 4))", "(8 + 8)"},
+		{`let value = 8; quote(8 + unquote(value))`, "(8 + 8)"},
 	}
 
 	for _, test := range tests {
@@ -62,7 +63,11 @@ func TestQuoteUnqote(t *testing.T) {
 		}
 
 		if quote.Node.String() != test.expected {
-			t.Fatalf("quote.Node.String() is not equal to 5. got=%s", quote.Node.String())
+			t.Fatalf(
+				"quote.Node.String() is not equal to %s. got=%s",
+				test.expected,
+				quote.Node.String(),
+			)
 		}
 	}
 }
