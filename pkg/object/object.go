@@ -77,7 +77,6 @@ func (b *Boolean) Type() ObjectType { return BOOLEAN_OBJ }
 func (b *Boolean) Inspect() string  { return fmt.Sprintf("%t", b.Value) }
 func (b *Boolean) HashKey() HashKey {
 	var value uint64
-
 	if b.Value {
 		value = 1
 	} else {
@@ -85,6 +84,19 @@ func (b *Boolean) HashKey() HashKey {
 	}
 
 	return HashKey{Type: b.Type(), Value: value}
+}
+func (b *Boolean) ToNode() ast.Node {
+	var tokenType token.TokenType
+	if b.Value {
+		tokenType = token.TRUE
+	} else {
+		tokenType = token.FALSE
+	}
+
+	return &ast.BooleanExpression{
+		Token: token.Token{Type: tokenType, Literal: strconv.FormatBool(b.Value)},
+		Value: b.Value,
+	}
 }
 
 type Null struct{}

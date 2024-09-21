@@ -48,6 +48,9 @@ func TestQuoteUnqote(t *testing.T) {
 		{"quote(unquote(4 + 4))", "8"},
 		{"quote(8 + unquote(4 + 4))", "(8 + 8)"},
 		{`let value = 8; quote(8 + unquote(value))`, "(8 + 8)"},
+		{"quote(unquote(true))", "true"},
+		{"quote(unquote(true == false))", "false"},
+		{"quote(4 + unquote(4 + 4 + quote(5 + 5)))", "(4 + 8 + (5 + 5))"},
 	}
 
 	for _, test := range tests {

@@ -5,6 +5,7 @@ import (
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
 
+// Create a Quote object evaluating any calls to unquote
 func quote(node ast.Node, env *object.Environment) object.Object {
 	return &object.Quote{Node: evalUnquoteCalls(node, env)}
 }
