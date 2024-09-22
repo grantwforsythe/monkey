@@ -222,3 +222,6 @@ func (q *Quote) Type() ObjectType { return QUOTE_OBJ }
 func (q *Quote) Inspect() string {
 	return fmt.Sprintf("QUOTE(%s)", q.Node.String())
 }
+func (q *Quote) ToNode() ast.Node {
+	return q.Node
+}
