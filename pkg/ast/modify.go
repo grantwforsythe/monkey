@@ -2,6 +2,8 @@ package ast
 
 type ModifierFunc func(Node) Node
 
+// BUG: Does not update the Token field for the parent node
+
 // Apply a modifer to an AST node.
 func Modify(node Node, modifier ModifierFunc) Node {
 	// TODO: Replace underscores with proper error handling
