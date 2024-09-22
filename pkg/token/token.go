@@ -1,52 +1,58 @@
+// Package token contains all of the tokens for the Monkey language.
 package token
 
 type TokenType string
 
+// TODO: Replace assignment operator `let` with `:=`
+// TODO: Replace fn defintion with func
+// TODO: Add a loop token
+// TODO: Add less/greater than or equal to operators
+
 const (
-	ILLEGAL = "ILLEGAL"
-	EOF     = "EOF"
+	ILLEGAL = "ILLEGAL" // Unrecognized token
+	EOF     = "EOF"     // End of file
 
-	IDENT = "IDENT" // add, foobar, x, y, ...
-	INT   = "INT"   // 1343456
+	IDENT  = "IDENT"  // Identifier, e.g. add, foobar, x, y
+	INT    = "INT"    // Integer literal, e.g. 1234
+	STRING = "STRING" // String literal, "Hello, World!"
 
-	ASSIGN   = "="
-	PLUS     = "+"
-	MINUS    = "-"
-	BANG     = "!"
-	ASTERISK = "*"
-	SLASH    = "/"
+	ASSIGN   = "=" // Assignment operator, "="
+	PLUS     = "+" // Additional operator, "+"
+	MINUS    = "-" // Subtraction operator, "-"
+	BANG     = "!" // Boolean inversion operator, "!"
+	ASTERISK = "*" // Multiplication operator, "*"
+	SLASH    = "/" // Division operator, "/"
 
-	LT = "<"
-	GT = ">"
+	LT = "<" // Less than operator, "<"
+	GT = ">" // Greater than operator, ">"
 
-	EQ     = "=="
-	NOT_EQ = "!="
+	EQ     = "==" // Equality operator, "=="
+	NOT_EQ = "!=" // Inverse equality opertor, "!="
 
-	COMMA     = ","
-	SEMICOLON = ";"
-	COLON     = ":"
+	COMMA     = "," // Comma, ","
+	SEMICOLON = ";" // Semicolon, ";"
+	COLON     = ":" // Colon, ":"
 
-	LPAREN   = "("
-	RPAREN   = ")"
-	LBRACE   = "{"
-	RBRACE   = "}"
-	LBRACKET = "["
-	RBRACKET = "]"
+	LPAREN   = "(" // Left parenthesis, "("
+	RPAREN   = ")" // Right parenthesis, ")"
+	LBRACE   = "{" // Left brace, "{"
+	RBRACE   = "}" // Rigth brace, "}"
+	LBRACKET = "[" // Left bracket, "["
+	RBRACKET = "]" // Right bracket, "]"
 
-	FUNCTION = "FUNCTION"
-	LET      = "LET"
-	TRUE     = "TRUE"
-	FALSE    = "FALSE"
-	IF       = "IF"
-	ELSE     = "ELSE"
-	RETURN   = "RETURN"
-	STRING   = "STRING"
+	FUNCTION = "FUNCTION" // Function definition, e.g. "fn(x, y)"
+	LET      = "LET"      // Assignment operator, "let"
+	TRUE     = "TRUE"     // Boolean literal "true"
+	FALSE    = "FALSE"    // Boolean literal "false"
+	IF       = "IF"       // Conditonal definition, "if"
+	ELSE     = "ELSE"     // Alternative conditional definition, "else"
+	RETURN   = "RETURN"   // Return statement, "return"
 	MACRO    = "MACRO"    // Macro definition, e.g. "macro(x, y)"
 )
 
 type Token struct {
-	Type    TokenType
-	Literal string
+	Type    TokenType // The type of token
+	Literal string    // The literal string of the token
 }
 
 var keywords = map[string]TokenType{
@@ -60,6 +66,8 @@ var keywords = map[string]TokenType{
 	"macro":  MACRO,
 }
 
+// Get the token associated with a keyword.
+// If the string is not a keyword it is an identifier token.
 func LookupIdent(ident string) TokenType {
 	if tok, ok := keywords[ident]; ok {
 		return tok
