@@ -1,3 +1,4 @@
+// Package lexer contains a lexer which will tokenize a string.
 package lexer
 
 import (
@@ -23,6 +24,7 @@ func New(input string) *Lexer {
 }
 
 // Get next character and advance the position in the input string.
+// If the current position is greater than the length of the input we've reached the end of the file.
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
 		// ASCII "NUL" -> "end of file" or "haven't read anything'"
@@ -36,6 +38,7 @@ func (l *Lexer) readChar() {
 }
 
 // Peek the next character without advancing the position of the input string.
+// If the current position is greater than the length of the input we've reached the end of the file.
 func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
 		// EOF
@@ -71,6 +74,7 @@ func (l *Lexer) readIdentifier() string {
 }
 
 // TODO: Add support for character escaping, e.g. \", \n, etc
+
 // Read the contents of a string.
 func (l *Lexer) readString() string {
 	// Skip over the first '"'
