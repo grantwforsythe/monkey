@@ -29,6 +29,7 @@ let result = add(five, ten);
 	"'foo'";
 	[1, 2];
 	{"test": 42};
+	macro(x, y) { x + y };
 `
 
 	tests := []struct {
@@ -122,6 +123,18 @@ let result = add(five, ten);
 		{token.STRING, "test"},
 		{token.COLON, ":"},
 		{token.INT, "42"},
+		{token.RBRACE, "}"},
+		{token.SEMICOLON, ";"},
+		{token.MACRO, "macro"},
+		{token.LPAREN, "("},
+		{token.IDENT, "x"},
+		{token.COMMA, ","},
+		{token.IDENT, "y"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.IDENT, "x"},
+		{token.PLUS, "+"},
+		{token.IDENT, "y"},
 		{token.RBRACE, "}"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
