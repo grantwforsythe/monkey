@@ -1,3 +1,4 @@
+// Package strings contains utility functions for working with strings.
 package strings
 
 // Determine if a character is whitespace or not
