@@ -1,3 +1,4 @@
+// Package ast contains the definitions for all of the nodes in the Abstract Syntax Tree (AST)
 package ast
 
 import (
@@ -339,6 +340,31 @@ func (hl *HashLiteral) String() string {
 	out.WriteString("{")
 	out.WriteString(strings.Join(pairs, ", "))
 	out.WriteString("}")
+
+	return out.String()
+}
+
+type MacroLiteral struct {
+	Token      token.Token     // The "macro" token
+	Parameters []*Identifier   // A slice of macro parameters
+	Body       *BlockStatement // The body of the macro
+}
+
+func (ml *MacroLiteral) expressionNode()      {}
+func (ml *MacroLiteral) TokenLiteral() string { return ml.Token.Literal }
+func (ml *MacroLiteral) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, param := range ml.Parameters {
+		params = append(params, param.String())
+	}
+
+	out.WriteString(ml.TokenLiteral())
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") ")
+	out.WriteString(ml.Body.String())
 
 	return out.String()
 }
