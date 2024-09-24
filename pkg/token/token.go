@@ -7,6 +7,7 @@ type TokenType string
 // TODO: Replace fn defintion with func
 // TODO: Add a loop token
 // TODO: Add less/greater than or equal to operators
+// TODO: Add comment token that will stop evaluation of a line
 
 const (
 	ILLEGAL = "ILLEGAL" // Unrecognized token
