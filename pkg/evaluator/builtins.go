@@ -1,9 +1,8 @@
 package evaluator
 
 import (
-	"os"
-
 	"fmt"
+	"os"
 
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
