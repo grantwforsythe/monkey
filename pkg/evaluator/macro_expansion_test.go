@@ -13,7 +13,7 @@ func TestDefineMacros(t *testing.T) {
 	input := `
 	let number = 1;
 	let function = fn(x, y) { x + y };
-	let macro! = macro(x, y) { x + y };
+	let mymacro = macro(x, y) { x + y };
 	`
 
 	program := testParseProgram(input)
@@ -32,9 +32,9 @@ func TestDefineMacros(t *testing.T) {
 		t.Fatalf("'function' should be undefined")
 	}
 
-	obj, ok := env.Get("macro!")
+	obj, ok := env.Get("mymacro")
 	if !ok {
-		t.Fatalf("'macro!' should not be undefined")
+		t.Fatalf("'mymacro' should not be undefined")
 	}
 
 	macro, ok := obj.(*object.Macro)
