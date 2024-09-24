@@ -3,6 +3,8 @@ package evaluator
 import (
 	"os"
 
+	"fmt"
+
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
 
@@ -127,6 +129,14 @@ var builtin = map[string]*object.Builtin{
 		Fn: func(args ...object.Object) object.Object {
 			os.Exit(0)
 			return &object.Null{}
+		},
+	},
+	"puts": {
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+			return NULL
 		},
 	},
 }
