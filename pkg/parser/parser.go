@@ -1,3 +1,4 @@
+// Package parser parsers a monkey program using a top-down recursive decent parser (Pratt parser) into an Abstract Syntax Tree (AST).
 package parser
 
 import (

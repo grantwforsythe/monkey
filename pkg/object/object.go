@@ -1,3 +1,4 @@
+// Package object contains all of the object definitions.
 package object
 
 import (

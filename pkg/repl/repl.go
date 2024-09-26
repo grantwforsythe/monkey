@@ -1,3 +1,4 @@
+// Package repl contains the Read Evaluate Print Loop (REPL).
 package repl
 
 import (
@@ -13,6 +14,7 @@ import (
 
 const PROMPT = ">> "
 
+// Start starts the REPL.
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 	env := object.NewEnvironment()

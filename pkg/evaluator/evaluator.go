@@ -1,3 +1,4 @@
+// Package evaluator contains all of the nessary logic to evaluate the AST.
 package evaluator
 
 // Boolean comparision is faster than Integer comparision because the former case is just doing a pointer comparision
@@ -20,6 +21,7 @@ var (
 	NULL  = &object.Null{}
 )
 
+// Eval recursively walks an AST evaluating each node into their respective objects.
 func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
 

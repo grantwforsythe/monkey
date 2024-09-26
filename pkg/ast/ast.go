@@ -1,4 +1,4 @@
-// Package ast contains the definitions for all of the nodes in the Abstract Syntax Tree (AST)
+// Package ast contains the definitions for all of the nodes in the Abstract Syntax Tree (AST).
 package ast
 
 import (
