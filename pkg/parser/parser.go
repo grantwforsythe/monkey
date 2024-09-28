@@ -39,6 +39,9 @@ var precedences = map[token.TokenType]int{
 	token.LBRACKET: INDEX,
 }
 
+// TODO: Replace errorString with general errors.New(). A custom error type would only be needed when we want to wrap errors.
+// fmt.Errorf with the %w verb adds the Unwrap method to the newly created error
+
 type errorString struct {
 	s string
 }
