@@ -8,6 +8,7 @@ type TokenType string
 // TODO: Add a loop token
 // TODO: Add less/greater than or equal to operators
 // TODO: Add comment token that will stop evaluation of a line
+// TODO: Add exponent operator
 
 const (
 	ILLEGAL = "ILLEGAL" // Unrecognized token
