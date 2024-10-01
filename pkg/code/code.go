@@ -1,6 +1,11 @@
-// Package code contains all of the definitions for the bytecode format.
-// The definition for Bytecode is defined in the compiler's package to avoid an import-cycle error.
+// Package code contains all of the definitions for the bytecode, which are instructions for the virtual machine, format and stack virtual machine.
+// A stack virutal machine is one in which memory is allocated in The Stake which by convention is where the callstack is implemented.
+// Like physical computers that execute machinecode, virutal machines execute bytecode.
+// NOTE: The definition for Bytecode is defined in the compiler's package to avoid an import-cycle error.
 package code
+
+// The fetch-decode-execute cycle, aka instruction cycle, is the clock speed for a CPU.
+// A computer's memory is segmented into "words" - smallest unit of memory - which is usually 32/64 bits.
 
 import (
 	"encoding/binary"
@@ -8,7 +13,8 @@ import (
 )
 
 // Instructions represents instructions for the virtual machine.
-// An instruction is made up of an Opcode and an operator.
+// An instruction is a small, basic command that tells the simulated processor what to do.
+// It is made up of an Opcode and an operator.
 type Instructions []byte
 
 // Opcode represents the "operator" part of an instruction.
@@ -22,7 +28,7 @@ const (
 // Definition represents the definition for an Opcode.
 type Definition struct {
 	Name          string // Name represents the name of the Opcode.
-	OperandWidths []int  // OperandWidths represents the number of bytes each operand uses.
+	OperandWidths []int  // OperandWidths represents the number of bytes each operand, the argument / parameter to an operator, uses.
 }
 
 var definitions = map[Opcode]*Definition{
@@ -39,7 +45,7 @@ func Lookup(op byte) (*Definition, error) {
 	return def, nil
 }
 
-// Make creates a bytecode instruction.
+// Make converts an instruction from a given opcode and associated operands.
 func Make(op Opcode, operands []int) Instructions {
 	definition, ok := definitions[op]
 	if !ok {
@@ -56,7 +62,6 @@ func Make(op Opcode, operands []int) Instructions {
 	for i, operand := range operands {
 		switch definition.OperandWidths[i] {
 		case 2:
-			// What is this about?
 			binary.BigEndian.PutUint16(instruction[offset:], uint16(operand))
 		}
 		offset += definition.OperandWidths[i]
