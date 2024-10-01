@@ -7,7 +7,6 @@ import (
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
 
-// Compiler represents a
 type Compiler struct {
 	instructions code.Instructions
 	constants    []object.Object
@@ -24,14 +23,64 @@ type ByteCode struct {
 func New() *Compiler {
 	return &Compiler{
 		instructions: code.Instructions{},
-		constants:    []object.Object{},
+		constants:    []object.Object{}, // constants is a global pool for all constants.
 	}
 }
 
 // Compile traverses the nodes in the AST, converting it into bytecode.
 func (c *Compiler) Compile(node ast.Node) error {
+	switch node := node.(type) {
+	case *ast.Program:
+		for _, stmt := range node.Statements {
+			err := c.Compile(stmt)
+			if err != nil {
+				return err
+			}
+		}
+
+	case *ast.ExpressionStatement:
+		err := c.Compile(node.Expression)
+		if err != nil {
+			return err
+		}
+
+	case *ast.InfixExpression:
+		err := c.Compile(node.Left)
+		if err != nil {
+			return err
+		}
+
+		err = c.Compile(node.Right)
+		if err != nil {
+			return err
+		}
+
+	case *ast.IntegerLiteral:
+		integer := &object.Integer{Value: node.Value}
+		// The index of the newly added constant is used as an operand in the emitted instruction.
+		c.emit(code.OpConstant, c.addConstant(integer))
+	}
 	// Iterate over the instructions in memory, repeating the fetch-decode-execute cycle like in an actual machine.
 	return nil
+}
+
+// addConstant adds a constant to the constants pool.
+// Returns the index of the newly added constant.
+func (c *Compiler) addConstant(obj object.Object) int {
+	// PERF: Unperformant way to add elements to a slice because the cap is 0 by default and will always be x2 the len by default
+	c.constants = append(c.constants, obj)
+	return len(c.constants) - 1
+}
+
+// emit generate an instruction and add it to the results.
+// Returns the position of the newly added instruction.
+func (c *Compiler) emit(op code.Opcode, operands ...int) int {
+	instruction := code.Make(op, operands...)
+	// Starting position of the newly added instruction.
+	position := len(c.instructions)
+	// PERF: Unperformant way to add elements to a slice because the cap is 0 by default and will always be x2 the len by default
+	c.instructions = append(c.instructions, instruction...)
+	return position
 }
 
 func (c *Compiler) ByteCode() *ByteCode {
