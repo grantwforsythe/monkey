@@ -1,7 +1,4 @@
-// Package code contains all of the definitions for the bytecode, which are instructions for the virtual machine, format and stack virtual machine.
-// A stack virutal machine is one in which memory is allocated in The Stake which by convention is where the callstack is implemented.
-// Like physical computers that execute machinecode, virutal machines execute bytecode.
-// NOTE: The definition for Bytecode is defined in the compiler's package to avoid an import-cycle error.
+// Package code contains the instruction set, the set of operations for the virtual machine.
 package code
 
 // The fetch-decode-execute cycle, aka instruction cycle, is the clock speed for a CPU.
@@ -41,22 +38,22 @@ func (ins Instructions) String() string {
 }
 
 // TODO: Rename method
-func (ins Instructions) fmtInstruction(defintion *Definition, operands []int) string {
-	if len(operands) != len(defintion.OperandWidths) {
+func (ins Instructions) fmtInstruction(definition *Definition, operands []int) string {
+	if len(operands) != len(definition.OperandWidths) {
 		return fmt.Sprintf(
 			"ERROR: operand len %d does not match defined %d\n",
 			len(operands),
-			len(defintion.OperandWidths),
+			len(definition.OperandWidths),
 		)
 	}
 
-	switch len(defintion.OperandWidths) {
+	switch len(definition.OperandWidths) {
 	case 1:
 		// No newline is needed because it is include in ins.String()
-		return fmt.Sprintf("%s %d", defintion.Name, operands[0])
+		return fmt.Sprintf("%s %d", definition.Name, operands[0])
 	}
 
-	return fmt.Sprintf("ERROR: unhandled operand count for %s\n", defintion.Name)
+	return fmt.Sprintf("ERROR: unhandled operand count for %s\n", definition.Name)
 }
 
 // Opcode represents the "operator" part of an instruction.
