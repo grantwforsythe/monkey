@@ -1,6 +1,8 @@
 package code
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestMake(t *testing.T) {
 	tests := []struct {
@@ -10,6 +12,7 @@ func TestMake(t *testing.T) {
 	}{
 		// OpConstant's operand is two bytes wide meaning 65535 is the highest value that can be represented.
 		{OpConstant, []int{65534}, []byte{byte(OpConstant), 255, 254}},
+		{OpAdd, []int{}, []byte{byte(OpAdd)}},
 	}
 
 	for _, test := range tests {
@@ -33,21 +36,37 @@ func TestMake(t *testing.T) {
 }
 
 func TestInstructionsString(t *testing.T) {
-	instruction := []Instructions{
-		Make(OpConstant, 1),
-		Make(OpConstant, 2),
-		Make(OpConstant, 65534),
+	tests := []struct {
+		instructions []Instructions
+		expected     string
+	}{
+		{
+			[]Instructions{
+				Make(OpConstant, 1),
+				Make(OpConstant, 2),
+				Make(OpConstant, 65534),
+			}, "0000 OpConstant 1\n0003 OpConstant 2\n0006 OpConstant 65534"},
+		{
+			[]Instructions{
+				Make(OpAdd),
+				Make(OpConstant, 2),
+				Make(OpConstant, 65534),
+			}, "0000 OpAdd\n0001 OpConstant 2\n0004 OpConstant 65534"},
 	}
 
-	expected := "0000 OpConstant 1\n0003 OpConstant 2\n0006 OpConstant 65534"
+	for _, test := range tests {
+		concatted := Instructions{}
+		for _, instruction := range test.instructions {
+			concatted = append(concatted, instruction...)
+		}
 
-	concatted := Instructions{}
-	for _, instruction := range instruction {
-		concatted = append(concatted, instruction...)
-	}
-
-	if concatted.String() != expected {
-		t.Fatalf("instructions incorrectly formatted. expected=%s, got=%s", expected, concatted)
+		if concatted.String() != test.expected {
+			t.Fatalf(
+				"instructions incorrectly formatted. expected=%s, got=%s",
+				test.expected,
+				concatted,
+			)
+		}
 	}
 }
 

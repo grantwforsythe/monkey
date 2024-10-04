@@ -61,7 +61,27 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpAdd:
+			a := vm.constants[vm.sp-1]
+			b := vm.constants[vm.sp-2]
 
+			// TODO: Pretty me
+			var result object.Object
+			switch {
+			case a.Type() == object.INTEGER_OBJ && b.Type() == object.INTEGER_OBJ:
+				result = &object.Integer{
+					Value: a.(*object.Integer).Value + b.(*object.Integer).Value,
+				}
+			}
+
+			vm.stack[vm.sp-1] = nil
+			vm.stack[vm.sp-2] = result
+			vm.sp -= 1
+
+			// err := vm.push(vm.constants[index])
+			// if err != nil {
+			// 	return err
+			// }
 		}
 	}
 
