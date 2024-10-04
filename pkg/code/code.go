@@ -19,6 +19,7 @@ type Instructions []byte
 func (ins Instructions) String() string {
 	var out bytes.Buffer
 
+	// i represents the index of the instruction in the slice of instructions
 	i := 0
 	for i < len(ins) {
 		definition, err := Lookup(ins[i])
@@ -47,9 +48,11 @@ func (ins Instructions) fmtInstruction(definition *Definition, operands []int) s
 		)
 	}
 
+	// No newline is needed because it is include in ins.String()
 	switch len(definition.OperandWidths) {
+	case 0:
+		return definition.Name
 	case 1:
-		// No newline is needed because it is include in ins.String()
 		return fmt.Sprintf("%s %d", definition.Name, operands[0])
 	}
 
@@ -62,6 +65,7 @@ type Opcode byte
 // We let iota generate the byte values because the actual values do not matter.
 const (
 	OpConstant Opcode = iota // OpConstant retrives the constant using the operand as an index and pushes it onto the stack.
+	OpAdd                    // OpAdd pops two objects off the stack, adds them together, and adds the result on the stack.
 )
 
 // Definition represents the definition for an Opcode.
@@ -72,9 +76,10 @@ type Definition struct {
 
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}},
+	OpAdd:      {"OpAdd", make([]int, 0)},
 }
 
-// Lookup is a function used for debugging that gets the Opcode definition for a given byte.
+// Lookup gets the Opcode definition for a given byte.
 func Lookup(op byte) (*Definition, error) {
 	def, ok := definitions[Opcode(op)]
 	if !ok {
@@ -92,9 +97,14 @@ func Make(op Opcode, operands ...int) Instructions {
 		return []byte{}
 	}
 
+	var sumOfWidths int
+	for _, width := range definition.OperandWidths {
+		sumOfWidths += width
+	}
+
 	// +1 because we need to account for the length of the instruction
 	offset := 1
-	instruction := make([]byte, definition.OperandWidths[0]+offset)
+	instruction := make([]byte, sumOfWidths+offset)
 	instruction[0] = byte(op)
 
 	// Iterate over the defined OperandWidths, take the matching element from the given operands and put it into the instruction.

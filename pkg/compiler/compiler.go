@@ -2,6 +2,8 @@
 package compiler
 
 import (
+	"fmt"
+
 	"github.com/grantwforsythe/monkeylang/pkg/ast"
 	"github.com/grantwforsythe/monkeylang/pkg/code"
 	"github.com/grantwforsythe/monkeylang/pkg/object"
@@ -55,6 +57,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
+		switch node.Operator {
+		case "+":
+			c.emit(code.OpAdd)
+		default:
+			return fmt.Errorf("unknown operator: %s", node.Operator)
+		}
+
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		// The index of the newly added constant is used as an operand in the emitted instruction.
@@ -72,7 +81,7 @@ func (c *Compiler) addConstant(obj object.Object) int {
 	return len(c.constants) - 1
 }
 
-// emit generate an instruction and add it to the results.
+// emit generates an instruction and add it to the results.
 // Returns the position of the newly added instruction.
 func (c *Compiler) emit(op code.Opcode, operands ...int) int {
 	instruction := code.Make(op, operands...)
