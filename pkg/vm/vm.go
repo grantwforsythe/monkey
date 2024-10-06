@@ -61,31 +61,36 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
-		case code.OpAdd:
-			a := vm.constants[vm.sp-1]
-			b := vm.constants[vm.sp-2]
 
-			// TODO: Pretty me
-			var result object.Object
-			switch {
-			case a.Type() == object.INTEGER_OBJ && b.Type() == object.INTEGER_OBJ:
-				result = &object.Integer{
-					Value: a.(*object.Integer).Value + b.(*object.Integer).Value,
-				}
+		case code.OpAdd:
+			right := vm.pop()
+			left := vm.pop()
+
+			// BUG: Handle other object types
+			result := &object.Integer{
+				Value: left.(*object.Integer).Value + right.(*object.Integer).Value,
 			}
 
-			vm.stack[vm.sp-1] = nil
-			vm.stack[vm.sp-2] = result
-			vm.sp -= 1
-
-			// err := vm.push(vm.constants[index])
-			// if err != nil {
-			// 	return err
-			// }
+			err := vm.push(result)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
+}
+
+// pop removes the top object from the stack.
+// Returns the pop object.
+func (vm *VM) pop() object.Object {
+	if vm.sp == 0 {
+		return nil
+	}
+
+	obj := vm.stack[vm.sp-1]
+	vm.sp -= 1
+	return obj
 }
 
 // push adds an object to the top of the stack and increments the pointer.
