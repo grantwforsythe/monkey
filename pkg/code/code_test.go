@@ -13,6 +13,10 @@ func TestMake(t *testing.T) {
 		// OpConstant's operand is two bytes wide meaning 65535 is the highest value that can be represented.
 		{OpConstant, []int{65534}, []byte{byte(OpConstant), 255, 254}},
 		{OpAdd, []int{}, []byte{byte(OpAdd)}},
+		{OpPop, []int{}, []byte{byte(OpPop)}},
+		{OpSub, []int{}, []byte{byte(OpSub)}},
+		{OpDiv, []int{}, []byte{byte(OpDiv)}},
+		{OpMul, []int{}, []byte{byte(OpMul)}},
 	}
 
 	for _, test := range tests {
@@ -77,6 +81,11 @@ func TestReadOperands(t *testing.T) {
 		bytesRead int
 	}{
 		{OpConstant, []int{65535}, 2},
+		{OpAdd, []int{}, 0},
+		{OpPop, []int{}, 0},
+		{OpMul, []int{}, 0},
+		{OpDiv, []int{}, 0},
+		{OpSub, []int{}, 0},
 	}
 
 	for _, test := range tests {

@@ -1,6 +1,6 @@
-// Package vm contains the stack virutal machine.
-// A stack virutal machine is one in which memory is allocated in The Stake which by convention is where the callstack is implemented.
-// Like physical computers that execute machinecode, virutal machines execute bytecode.
+// Package vm contains the stack virtual machine.
+// A stack virtual machine is one in which memory is allocated in The Stake which by convention is where the callstack is implemented.
+// Like physical computers that execute machinecode, virtual machines execute bytecode.
 package vm
 
 import (
@@ -43,6 +43,13 @@ func (vm *VM) StackTop() object.Object {
 	return vm.stack[vm.sp-1]
 }
 
+// lastPoppedStackElem gets the last element popped from the stack. Values are not zero out when they are popped from the stack, instead the stackpointer is decremented.
+// Returns the object last popped from the stack.
+func (vm *VM) lastPoppedStackElem() object.Object {
+	// The stackpointer always points to the next free slot in memory.
+	return vm.stack[vm.sp]
+}
+
 // Run is the fetch-decode-excute cycle for the virtual machine.
 func (vm *VM) Run() error {
 	// The fetch part.
@@ -62,24 +69,40 @@ func (vm *VM) Run() error {
 				return err
 			}
 
-		case code.OpAdd:
+		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
 			right := vm.pop()
 			left := vm.pop()
 
 			// BUG: Handle other object types
-			result := &object.Integer{
-				Value: left.(*object.Integer).Value + right.(*object.Integer).Value,
+			var result int64
+			switch op {
+			case code.OpAdd:
+				result = left.(*object.Integer).Value + right.(*object.Integer).Value
+			case code.OpSub:
+				result = left.(*object.Integer).Value - right.(*object.Integer).Value
+			case code.OpMul:
+				result = left.(*object.Integer).Value * right.(*object.Integer).Value
+			case code.OpDiv:
+				result = left.(*object.Integer).Value / right.(*object.Integer).Value
+			default:
+				return fmt.Errorf("unknown integer operator: %d", op)
 			}
 
-			err := vm.push(result)
+			err := vm.push(&object.Integer{Value: result})
 			if err != nil {
 				return err
 			}
+
+		case code.OpPop:
+			vm.pop()
+
 		}
 	}
 
 	return nil
 }
+
+// TODO: Refactor stack into own struct
 
 // pop removes the top object from the stack.
 // Returns the pop object.
@@ -88,6 +111,7 @@ func (vm *VM) pop() object.Object {
 		return nil
 	}
 
+	// Does not actually zero out the value, instead we just change the stackpointer.
 	obj := vm.stack[vm.sp-1]
 	vm.sp -= 1
 	return obj

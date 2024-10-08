@@ -66,6 +66,10 @@ type Opcode byte
 const (
 	OpConstant Opcode = iota // OpConstant retrives the constant using the operand as an index and pushes it onto the stack.
 	OpAdd                    // OpAdd pops two objects off the stack, adds them together, and adds the result on the stack.
+	OpPop                    // OpPop pops the top most element off the stack
+	OpSub                    // OpSub pops two objects off the stack, subtracts them, and pushes the result onto the stack.
+	OpDiv                    // OpDiv pops two objects off the stack, divdes them, and pushes the result onto the stack.
+	OpMul                    // OpMul pops two objects off the stack, multiples them, and pushes the result onto the stack.
 )
 
 // Definition represents the definition for an Opcode.
@@ -77,6 +81,10 @@ type Definition struct {
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}},
 	OpAdd:      {"OpAdd", make([]int, 0)},
+	OpPop:      {"OpPop", make([]int, 0)},
+	OpSub:      {"OpSub", make([]int, 0)},
+	OpDiv:      {"OpDiv", make([]int, 0)},
+	OpMul:      {"OpMul", make([]int, 0)},
 }
 
 // Lookup gets the Opcode definition for a given byte.
