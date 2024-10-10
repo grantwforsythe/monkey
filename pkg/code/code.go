@@ -70,6 +70,11 @@ const (
 	OpSub                    // OpSub pops two objects off the stack, subtracts them, and pushes the result onto the stack.
 	OpDiv                    // OpDiv pops two objects off the stack, divdes them, and pushes the result onto the stack.
 	OpMul                    // OpMul pops two objects off the stack, multiples them, and pushes the result onto the stack.
+	OpTrue                   // OpTrue push a boolean object with a value of true onto the stack.
+	OpFalse                  // OpFalse push a boolean object with a value of false onto the stack.
+	OpEQ                     // OpEQ compares the two top most elemensts on the stack ensuring they are equal, ==
+	OpNEQ                    // OpNEQ compares the two top most elements on the stack ensuring they are not equal, !=
+	OpGT                     // OpGT compares the two top most elements on the stack ensuring one is greater than the other. The elements are reordered if they are less than.
 )
 
 // Definition represents the definition for an Opcode.
@@ -78,6 +83,8 @@ type Definition struct {
 	OperandWidths []int  // OperandWidths represents the number of bytes each operand, the argument / parameter to an operator, uses.
 }
 
+// The slices are being created with the make function because we want to avoid the problems that arise with nil
+
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}},
 	OpAdd:      {"OpAdd", make([]int, 0)},
@@ -85,6 +92,11 @@ var definitions = map[Opcode]*Definition{
 	OpSub:      {"OpSub", make([]int, 0)},
 	OpDiv:      {"OpDiv", make([]int, 0)},
 	OpMul:      {"OpMul", make([]int, 0)},
+	OpTrue:     {"OpTrue", make([]int, 0)},
+	OpFalse:    {"OpFalse", make([]int, 0)},
+	OpEQ:       {"OpEQ", make([]int, 0)},
+	OpNEQ:      {"OpNEQ", make([]int, 0)},
+	OpGT:       {"OpGT", make([]int, 0)},
 }
 
 // Lookup gets the Opcode definition for a given byte.
