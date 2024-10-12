@@ -74,6 +74,81 @@ func TestIntegerArithmetic(t *testing.T) {
 	runCompilerTests(t, tests)
 }
 
+func TestBooleanExpression(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			"true; false",
+			[]any{},
+			[]code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpPop),
+				code.Make(code.OpFalse),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"false",
+			[]any{},
+			[]code.Instructions{
+				code.Make(code.OpFalse),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"1 > 2",
+			[]any{1, 2},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpGT),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"1 < 2",
+			[]any{2, 1},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpGT),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"true == true",
+			[]any{},
+			[]code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpTrue),
+				code.Make(code.OpEQ),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"false == true",
+			[]any{},
+			[]code.Instructions{
+				code.Make(code.OpFalse),
+				code.Make(code.OpTrue),
+				code.Make(code.OpEQ),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"true != true",
+			[]any{},
+			[]code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpTrue),
+				code.Make(code.OpNEQ),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilerTests(t, tests)
+}
+
 func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 	t.Helper()
 
@@ -84,18 +159,21 @@ func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 		err := compiler.Compile(program)
 
 		if err != nil {
-			t.Fatalf("compiler error: %s", err)
+			t.Errorf("compiler error: %s", err)
 		}
 
 		bytecode := compiler.ByteCode()
+		temp := bytecode.Instructions.String()
+		fmt.Println(temp)
+
 		err = testInstructions(test.expectedInstructions, bytecode.Instructions)
 		if err != nil {
-			t.Fatalf("testInstructions failed: %s", err)
+			t.Errorf("testInstructions failed: %s", err)
 		}
 
 		err = testConstants(test.expectedConstants, bytecode.Constants)
 		if err != nil {
-			t.Fatalf("testConstants failed: %s", err)
+			t.Errorf("testConstants failed: %s", err)
 		}
 	}
 }
@@ -118,7 +196,7 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 			return fmt.Errorf(
 				"wrong instruction at %d. expected=%q, got=%q",
 				i,
-				concatted,
+				instruction,
 				actual[i],
 			)
 		}
