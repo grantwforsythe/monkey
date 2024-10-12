@@ -72,26 +72,113 @@ func (vm *VM) Run() error {
 				return err
 			}
 
-		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
+		case code.OpEQ:
+			right := vm.pop()
+			left := vm.pop()
+
+			var val bool
+			switch {
+			case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+				val = left.(*object.Integer).Value == right.(*object.Integer).Value
+			case left.Type() == object.BOOLEAN_OBJ && right.Type() == object.BOOLEAN_OBJ:
+				val = left.(*object.Boolean).Value == right.(*object.Boolean).Value
+			default:
+				return fmt.Errorf("type mismatch: %s == %s", left.Type(), right.Type())
+			}
+
+			err := vm.push(convertBooleanToObject(val))
+			if err != nil {
+				return err
+			}
+
+		case code.OpNEQ:
+			right := vm.pop()
+			left := vm.pop()
+
+			var val bool
+			switch {
+			case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+				val = left.(*object.Integer).Value != right.(*object.Integer).Value
+			case left.Type() == object.BOOLEAN_OBJ && right.Type() == object.BOOLEAN_OBJ:
+				val = left.(*object.Boolean).Value != right.(*object.Boolean).Value
+			default:
+				return fmt.Errorf("type mismatch: %s != %s", left.Type(), right.Type())
+			}
+
+			err := vm.push(convertBooleanToObject(val))
+			if err != nil {
+				return err
+			}
+
+		case code.OpGT:
+			right := vm.pop()
+			left := vm.pop()
+
+			var val bool
+			switch {
+			case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+				val = left.(*object.Integer).Value > right.(*object.Integer).Value
+			default:
+				return fmt.Errorf("type mismatch: %s > %s", left.Type(), right.Type())
+			}
+
+			err := vm.push(convertBooleanToObject(val))
+			if err != nil {
+				return err
+			}
+
+		case code.OpSub:
 			right := vm.pop()
 			left := vm.pop()
 
 			// BUG: Handle other object types
-			var result int64
-			switch op {
-			case code.OpAdd:
-				result = left.(*object.Integer).Value + right.(*object.Integer).Value
-			case code.OpSub:
-				result = left.(*object.Integer).Value - right.(*object.Integer).Value
-			case code.OpMul:
-				result = left.(*object.Integer).Value * right.(*object.Integer).Value
-			case code.OpDiv:
-				result = left.(*object.Integer).Value / right.(*object.Integer).Value
-			default:
-				return fmt.Errorf("unknown integer operator: %d", op)
+			err := vm.push(
+				&object.Integer{
+					Value: left.(*object.Integer).Value - right.(*object.Integer).Value,
+				},
+			)
+			if err != nil {
+				return err
 			}
 
-			err := vm.push(&object.Integer{Value: result})
+		case code.OpMul:
+			right := vm.pop()
+			left := vm.pop()
+
+			// BUG: Handle other object types
+			err := vm.push(
+				&object.Integer{
+					Value: left.(*object.Integer).Value * right.(*object.Integer).Value,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+		case code.OpDiv:
+			right := vm.pop()
+			left := vm.pop()
+
+			// BUG: Handle other object types
+			err := vm.push(
+				&object.Integer{
+					Value: left.(*object.Integer).Value / right.(*object.Integer).Value,
+				},
+			)
+			if err != nil {
+				return err
+			}
+
+		case code.OpAdd:
+			right := vm.pop()
+			left := vm.pop()
+
+			// BUG: Handle other object types
+			err := vm.push(
+				&object.Integer{
+					Value: left.(*object.Integer).Value + right.(*object.Integer).Value,
+				},
+			)
 			if err != nil {
 				return err
 			}
@@ -143,4 +230,12 @@ func (vm *VM) push(obj object.Object) error {
 	vm.sp++
 
 	return nil
+}
+
+// convertBooleanToObject converts a boolean value into a *object.Boolean.
+func convertBooleanToObject(val bool) *object.Boolean {
+	if val {
+		return TRUE
+	}
+	return FALSE
 }
