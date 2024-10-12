@@ -24,6 +24,9 @@ type VM struct {
 	sp int
 }
 
+var TRUE = &object.Boolean{Value: true}
+var FALSE = &object.Boolean{Value: false}
+
 // New creates a new virtual machine from bytecode.
 func New(bytecode *compiler.ByteCode) *VM {
 	return &VM{
@@ -89,6 +92,18 @@ func (vm *VM) Run() error {
 			}
 
 			err := vm.push(&object.Integer{Value: result})
+			if err != nil {
+				return err
+			}
+
+		case code.OpTrue:
+			err := vm.push(TRUE)
+			if err != nil {
+				return err
+			}
+
+		case code.OpFalse:
+			err := vm.push(FALSE)
 			if err != nil {
 				return err
 			}
