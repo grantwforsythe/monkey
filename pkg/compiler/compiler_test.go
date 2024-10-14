@@ -76,6 +76,32 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 		{
+			"-(50 / 2 * 2 + 10 - 5)",
+			[]any{50, 2, 2, 10, 5},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpDiv),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpMul),
+				code.Make(code.OpConstant, 3),
+				code.Make(code.OpAdd),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpSub),
+				code.Make(code.OpMinus),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"-1",
+			[]any{1},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpMinus),
+				code.Make(code.OpPop),
+			},
+		},
+		{
 			"1; 2",
 			[]any{1, 2},
 			[]code.Instructions{
@@ -177,6 +203,37 @@ func TestBooleanExpression(t *testing.T) {
 				code.Make(code.OpTrue),
 				code.Make(code.OpTrue),
 				code.Make(code.OpNEQ),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"!true",
+			[]any{},
+			[]code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpBang),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"!true != true",
+			[]any{},
+			[]code.Instructions{
+				code.Make(code.OpTrue),
+				code.Make(code.OpBang),
+				code.Make(code.OpTrue),
+				code.Make(code.OpNEQ),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			"!(1 != 2)",
+			[]any{1, 2},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpNEQ),
+				code.Make(code.OpBang),
 				code.Make(code.OpPop),
 			},
 		},

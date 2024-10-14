@@ -72,9 +72,11 @@ const (
 	OpMul                    // OpMul pops two objects off the stack, multiples them, and pushes the result onto the stack.
 	OpTrue                   // OpTrue push a boolean object with a value of true onto the stack.
 	OpFalse                  // OpFalse push a boolean object with a value of false onto the stack.
-	OpEQ                     // OpEQ compares the two top most elemensts on the stack ensuring they are equal, ==
-	OpNEQ                    // OpNEQ compares the two top most elements on the stack ensuring they are not equal, !=
+	OpEQ                     // OpEQ compares the two top most elemensts on the stack ensuring they are equal, ==.
+	OpNEQ                    // OpNEQ compares the two top most elements on the stack ensuring they are not equal, !=.
 	OpGT                     // OpGT compares the two top most elements on the stack ensuring one is greater than the other. The elements are reordered if they are less than.
+	OpBang                   // OpBang negates a boolean expression.
+	OpMinus                  // OpMinus multiples an integer on the stack by -1.
 )
 
 // Definition represents the definition for an Opcode.
@@ -97,6 +99,8 @@ var definitions = map[Opcode]*Definition{
 	OpEQ:       {"OpEQ", make([]int, 0)},
 	OpNEQ:      {"OpNEQ", make([]int, 0)},
 	OpGT:       {"OpGT", make([]int, 0)},
+	OpBang:     {"OpBang", make([]int, 0)},
+	OpMinus:    {"OpMinus", make([]int, 0)},
 }
 
 // Lookup gets the Opcode definition for a given byte.

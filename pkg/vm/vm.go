@@ -189,6 +189,24 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpMinus:
+			operand := vm.pop()
+
+			if operand.Type() != object.INTEGER_OBJ {
+				return fmt.Errorf("unsupported type for negation: %s", operand.Type())
+			}
+
+			err := vm.push(&object.Integer{Value: -operand.(*object.Integer).Value})
+			if err != nil {
+				return err
+			}
+
+		case code.OpBang:
+			err := vm.executeBangOperator()
+			if err != nil {
+				return err
+			}
+
 		case code.OpFalse:
 			err := vm.push(FALSE)
 			if err != nil {
@@ -238,4 +256,20 @@ func convertBooleanToObject(val bool) *object.Boolean {
 		return TRUE
 	}
 	return FALSE
+}
+
+// executeBangOperator negates the last value pushed onto the stack.
+// If the last value is not of type *object.Boolean, it will default to FALSE.
+func (vm *VM) executeBangOperator() error {
+	operand := vm.pop()
+
+	switch operand {
+	case TRUE:
+		return vm.push(FALSE)
+	case FALSE:
+		return vm.push(TRUE)
+	// BUG: Potential bug here as any object on the stack will have a falsely value prefixed with the bang operator
+	default:
+		return vm.push(FALSE)
+	}
 }

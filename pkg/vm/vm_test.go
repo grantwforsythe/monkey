@@ -11,6 +11,8 @@ import (
 	"github.com/grantwforsythe/monkeylang/pkg/parser"
 )
 
+// TODO: Test errors
+
 type vmTestCase struct {
 	input    string
 	expected any
@@ -30,6 +32,9 @@ func TestIntegerArithmetic(t *testing.T) {
 		{"5 + 2 * 10", 25},
 		{"5 * (2 + 10)", 60},
 		{"1; 2", 2},
+		{"-1", -1},
+		{"-50 + 100 + -50", 0},
+		// {"-(50 / 2 * 2 + 10 - 5)", -55},
 	}
 
 	runVmTests(t, tests)
@@ -55,7 +60,14 @@ func TestBooleanExpression(t *testing.T) {
 		{"(1 < 2) == true", true},
 		{"(1 < 2) == false", false},
 		{"(1 > 2) == true", false},
-		{"(1 > 2) == false", true}}
+		{"(1 > 2) == false", true},
+		{"!false", true},
+		{"!true", false},
+		{"!!true", true},
+		{"!5", false},
+		{"!!5", true},
+		{"!(true != false)", false},
+	}
 
 	runVmTests(t, tests)
 }
