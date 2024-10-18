@@ -64,19 +64,21 @@ type Opcode byte
 
 // We let iota generate the byte values because the actual values do not matter.
 const (
-	OpConstant Opcode = iota // OpConstant retrives the constant using the operand as an index and pushes it onto the stack.
-	OpAdd                    // OpAdd pops two objects off the stack, adds them together, and adds the result on the stack.
-	OpPop                    // OpPop pops the top most element off the stack
-	OpSub                    // OpSub pops two objects off the stack, subtracts them, and pushes the result onto the stack.
-	OpDiv                    // OpDiv pops two objects off the stack, divdes them, and pushes the result onto the stack.
-	OpMul                    // OpMul pops two objects off the stack, multiples them, and pushes the result onto the stack.
-	OpTrue                   // OpTrue push a boolean object with a value of true onto the stack.
-	OpFalse                  // OpFalse push a boolean object with a value of false onto the stack.
-	OpEQ                     // OpEQ compares the two top most elemensts on the stack ensuring they are equal, ==.
-	OpNEQ                    // OpNEQ compares the two top most elements on the stack ensuring they are not equal, !=.
-	OpGT                     // OpGT compares the two top most elements on the stack ensuring one is greater than the other. The elements are reordered if they are less than.
-	OpBang                   // OpBang negates a boolean expression.
-	OpMinus                  // OpMinus multiples an integer on the stack by -1.
+	OpConstant      Opcode = iota // OpConstant retrives the constant using the operand as an index and pushes it onto the stack.
+	OpAdd                         // OpAdd pops two objects off the stack, adds them together, and adds the result on the stack.
+	OpPop                         // OpPop pops the top most element off the stack
+	OpSub                         // OpSub pops two objects off the stack, subtracts them, and pushes the result onto the stack.
+	OpDiv                         // OpDiv pops two objects off the stack, divdes them, and pushes the result onto the stack.
+	OpMul                         // OpMul pops two objects off the stack, multiples them, and pushes the result onto the stack.
+	OpTrue                        // OpTrue push a boolean object with a value of true onto the stack.
+	OpFalse                       // OpFalse push a boolean object with a value of false onto the stack.
+	OpEQ                          // OpEQ compares the two top most elemensts on the stack ensuring they are equal, ==.
+	OpNEQ                         // OpNEQ compares the two top most elements on the stack ensuring they are not equal, !=.
+	OpGT                          // OpGT compares the two top most elements on the stack ensuring one is greater than the other. The elements are reordered if they are less than.
+	OpBang                        // OpBang negates a boolean expression.
+	OpMinus                       // OpMinus multiples an integer on the stack by -1.
+	OpJump                        // OpJump 'jumps' over instructions to get to a particular instruction. This op is used to implement branching
+	OpJumpNotTruthy               // OpJumpNotTruthy only 'jumps' if the instruction on the top of the stack is truthy
 )
 
 // Definition represents the definition for an Opcode.
@@ -88,19 +90,21 @@ type Definition struct {
 // The slices are being created with the make function because we want to avoid the problems that arise with nil
 
 var definitions = map[Opcode]*Definition{
-	OpConstant: {"OpConstant", []int{2}},
-	OpAdd:      {"OpAdd", make([]int, 0)},
-	OpPop:      {"OpPop", make([]int, 0)},
-	OpSub:      {"OpSub", make([]int, 0)},
-	OpDiv:      {"OpDiv", make([]int, 0)},
-	OpMul:      {"OpMul", make([]int, 0)},
-	OpTrue:     {"OpTrue", make([]int, 0)},
-	OpFalse:    {"OpFalse", make([]int, 0)},
-	OpEQ:       {"OpEQ", make([]int, 0)},
-	OpNEQ:      {"OpNEQ", make([]int, 0)},
-	OpGT:       {"OpGT", make([]int, 0)},
-	OpBang:     {"OpBang", make([]int, 0)},
-	OpMinus:    {"OpMinus", make([]int, 0)},
+	OpConstant:      {"OpConstant", []int{2}},
+	OpAdd:           {"OpAdd", make([]int, 0)},
+	OpPop:           {"OpPop", make([]int, 0)},
+	OpSub:           {"OpSub", make([]int, 0)},
+	OpDiv:           {"OpDiv", make([]int, 0)},
+	OpMul:           {"OpMul", make([]int, 0)},
+	OpTrue:          {"OpTrue", make([]int, 0)},
+	OpFalse:         {"OpFalse", make([]int, 0)},
+	OpEQ:            {"OpEQ", make([]int, 0)},
+	OpNEQ:           {"OpNEQ", make([]int, 0)},
+	OpGT:            {"OpGT", make([]int, 0)},
+	OpBang:          {"OpBang", make([]int, 0)},
+	OpMinus:         {"OpMinus", make([]int, 0)},
+	OpJump:          {"OpJump", []int{2}},
+	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 }
 
 // Lookup gets the Opcode definition for a given byte.
