@@ -64,21 +64,36 @@ type Opcode byte
 
 // We let iota generate the byte values because the actual values do not matter.
 const (
-	OpConstant      Opcode = iota // OpConstant retrives the constant using the operand as an index and pushes it onto the stack.
-	OpAdd                         // OpAdd pops two objects off the stack, adds them together, and adds the result on the stack.
-	OpPop                         // OpPop pops the top most element off the stack
-	OpSub                         // OpSub pops two objects off the stack, subtracts them, and pushes the result onto the stack.
-	OpDiv                         // OpDiv pops two objects off the stack, divdes them, and pushes the result onto the stack.
-	OpMul                         // OpMul pops two objects off the stack, multiples them, and pushes the result onto the stack.
-	OpTrue                        // OpTrue push a boolean object with a value of true onto the stack.
-	OpFalse                       // OpFalse push a boolean object with a value of false onto the stack.
-	OpEQ                          // OpEQ compares the two top most elemensts on the stack ensuring they are equal, ==.
-	OpNEQ                         // OpNEQ compares the two top most elements on the stack ensuring they are not equal, !=.
-	OpGT                          // OpGT compares the two top most elements on the stack ensuring one is greater than the other. The elements are reordered if they are less than.
-	OpBang                        // OpBang negates a boolean expression.
-	OpMinus                       // OpMinus multiples an integer on the stack by -1.
-	OpJump                        // OpJump 'jumps' over instructions to get to a particular instruction. This op is used to implement branching
-	OpJumpNotTruthy               // OpJumpNotTruthy only 'jumps' if the instruction on the top of the stack is truthy
+	// OpConstant retrives the constant using the operand as an index and pushes it onto the stack.
+	OpConstant Opcode = iota
+	// OpAdd pops two objects off the stack, adds them together, and adds the result on the stack.
+	OpAdd
+	// OpPop pops the top most element off the stack
+	OpPop
+	// OpSub pops two objects off the stack, subtracts them, and pushes the result onto the stack.
+	OpSub
+	// OpDiv pops two objects off the stack, divdes them, and pushes the result onto the stack.
+	OpDiv
+	// OpMul pops two objects off the stack, multiples them, and pushes the result onto the stack.
+	OpMul
+	// OpTrue push a boolean object with a value of true onto the stack.
+	OpTrue
+	// OpFalse push a boolean object with a value of false onto the stack.
+	OpFalse
+	// OpEQ compares the two top most elemensts on the stack ensuring they are equal, ==.
+	OpEQ
+	// OpNEQ compares the two top most elements on the stack ensuring they are not equal, !=.
+	OpNEQ
+	// OpGT compares the two top most elements on the stack ensuring one is greater than the other. The elements are reordered if they are less than.
+	OpGT
+	// OpBang negates a boolean expression.
+	OpBang
+	// OpMinus multiples an integer on the stack by -1.
+	OpMinus
+	// OpJump 'jumps' over instructions to get to a particular instruction. This op is used to implement branching.
+	OpJump
+	// OpJumpNotTruthy only 'jumps' to the given index if the instruction on the top of the stack is truthy.
+	OpJumpNotTruthy
 )
 
 // Definition represents the definition for an Opcode.

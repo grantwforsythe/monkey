@@ -262,6 +262,42 @@ func TestConditionals(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			"if (false) { 10 }; 3333",
+			[]any{10, 3333},
+			[]code.Instructions{
+				// index: 000
+				code.Make(code.OpFalse),
+				// index: 001
+				code.Make(code.OpJumpNotTruthy, 7),
+				// index: 004
+				code.Make(code.OpConstant, 0),
+				// index: 007
+				code.Make(code.OpPop),
+				// index: 008
+				code.Make(code.OpConstant, 1),
+				// index: 011
+				code.Make(code.OpPop),
+			},
+		},
+{
+			"if (true) { 10 } else { 3333 };",
+			[]any{10, 3333},
+			[]code.Instructions{
+				// index: 000
+				code.Make(code.OpFalse),
+				// index: 001
+				code.Make(code.OpJumpNotTruthy, 7),
+				// index: 004
+				code.Make(code.OpConstant, 0),
+				// index: 007
+				code.Make(code.OpPop),
+				// index: 008
+				code.Make(code.OpConstant, 1),
+				// index: 011
+				code.Make(code.OpPop),
+			},
+		}
 	}
 
 	runCompilerTests(t, tests)

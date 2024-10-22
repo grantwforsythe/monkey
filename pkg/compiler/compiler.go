@@ -1,4 +1,5 @@
 // Package compiler contains all of the logic for compiling an AST into bytecode.
+// The Compiler is a stacked-based, single-pass compiler as objects are stored on a stacked and the AST is traversed only once.
 package compiler
 
 import (
@@ -9,10 +10,12 @@ import (
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
 
+// TODO: Prefix all errors with "Compiler error"
+
 // EmittedInstruction represents an instruction emitted by the compiler.
 type EmittedInstruction struct {
 	Opcode   code.Opcode // Opcode represents the op of the emitted instruction.
-	Position int         // Position represents the position of the emitted instruction.
+	Position int         // Position represents the position of the emitted instruction in the slice of already emitted instructions.
 }
 
 type Compiler struct {
@@ -121,16 +124,19 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		// 9999 is a dummy value and will be updated after all other instructions have been added
-		c.emit(code.OpJumpNotTruthy, 9999)
+		jumpNotTruthyPosition := c.emit(code.OpJumpNotTruthy, 9999)
 
 		err = c.Compile(node.Consequence)
 		if err != nil {
 			return err
 		}
 
-		// if c.lastInstructionIsPop() {
-		// 	c.removePopInstruction()
-		// }
+		if c.lastInstructionIsPop() {
+			c.removeLastInstruction()
+		}
+
+		// Replace the dummy operand with the position of the first instruction after the consequence of an if statement.
+		c.updateOperand(jumpNotTruthyPosition, len(c.instructions))
 
 		// err = c.Compile(node.Alternative)
 		// if err != nil {
@@ -166,6 +172,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 	return nil
 }
 
+func (c *Compiler) ByteCode() *ByteCode {
+	return &ByteCode{
+		Instructions: c.instructions,
+		Constants:    c.constants,
+	}
+}
+
 // addConstant adds a constant to the constants pool.
 // Returns the index of the newly added constant.
 func (c *Compiler) addConstant(obj object.Object) int {
@@ -197,16 +210,26 @@ func (c *Compiler) lastInstructionIsPop() bool {
 	return c.lastInstruction.Opcode == code.OpPop
 }
 
-func (c *Compiler) removePopInstruction() {
+// removeLastInstruction removes the last emitted instruction from the slice of emitted instructions.
+func (c *Compiler) removeLastInstruction() {
 	c.instructions = c.instructions[:c.lastInstruction.Position]
 	c.lastInstruction = c.previousInstruction
 	// TODO: Set previous instruction to the previous previous instruction
 	c.previousInstruction = nil
 }
 
-func (c *Compiler) ByteCode() *ByteCode {
-	return &ByteCode{
-		Instructions: c.instructions,
-		Constants:    c.constants,
+// updateOperand changes the operand for an instruction at a given position.
+// It is assumed that the operand is valid for the instruction being updated.
+func (c *Compiler) updateOperand(position, operand int) {
+	op := code.Opcode(c.instructions[position])
+	newInstruction := code.Make(op, operand)
+	c.replaceInstruction(position, newInstruction)
+}
+
+// replaceInstruction replaces an instruction with a new instruction starting from a given posiution.
+// It is assumed that the newInstruction is of the same type and length as the old instruction.
+func (c *Compiler) replaceInstruction(position int, newInstruction code.Instructions) {
+	for i := 0; i < len(newInstruction); i++ {
+		c.instructions[position+i] = newInstruction[i]
 	}
 }
