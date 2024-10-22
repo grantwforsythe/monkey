@@ -9,9 +9,17 @@ import (
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
 
+// EmittedInstruction represents an instruction emitted by the compiler.
+type EmittedInstruction struct {
+	Opcode   code.Opcode // Opcode represents the op of the emitted instruction.
+	Position int         // Position represents the position of the emitted instruction.
+}
+
 type Compiler struct {
-	instructions code.Instructions
-	constants    []object.Object
+	instructions        code.Instructions   // instructions represent the instructions generated from source code.
+	constants           []object.Object     // constants represents the constants pool the compiler.
+	lastInstruction     *EmittedInstruction // lastInstruction represents the last emitted instruction by the compiler.
+	previousInstruction *EmittedInstruction // previousInstruction represents the instruction emitted before the last instruction by the compiler.
 }
 
 // ByteCode represents a domain-specific language for a domain-specific virtual machine.
@@ -25,7 +33,7 @@ type ByteCode struct {
 func New() *Compiler {
 	return &Compiler{
 		instructions: code.Instructions{},
-		constants:    []object.Object{}, // constants is a global pool for all constants.
+		constants:    make([]object.Object, 0),
 	}
 }
 
@@ -106,6 +114,37 @@ func (c *Compiler) Compile(node ast.Node) error {
 		// The index of the newly added constant is used as an operand in the emitted instruction.
 		c.emit(code.OpConstant, c.addConstant(integer))
 
+	case *ast.IfExpression:
+		err := c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+
+		// 9999 is a dummy value and will be updated after all other instructions have been added
+		c.emit(code.OpJumpNotTruthy, 9999)
+
+		err = c.Compile(node.Consequence)
+		if err != nil {
+			return err
+		}
+
+		// if c.lastInstructionIsPop() {
+		// 	c.removePopInstruction()
+		// }
+
+		// err = c.Compile(node.Alternative)
+		// if err != nil {
+		// 	return err
+		// }
+		//
+	case *ast.BlockStatement:
+		for _, stmt := range node.Statements {
+			err := c.Compile(stmt)
+			if err != nil {
+				return err
+			}
+		}
+
 	case *ast.PrefixExpression:
 		err := c.Compile(node.Right)
 		if err != nil {
@@ -143,7 +182,26 @@ func (c *Compiler) emit(op code.Opcode, operands ...int) int {
 	position := len(c.instructions)
 	// PERF: Unperformant way to add elements to a slice because the cap is 0 by default and will always be x2 the len by default
 	c.instructions = append(c.instructions, instruction...)
+	c.setLastInstruction(op, position)
+
 	return position
+}
+
+func (c *Compiler) setLastInstruction(op code.Opcode, position int) {
+	c.previousInstruction = c.lastInstruction
+	c.lastInstruction = &EmittedInstruction{Opcode: op, Position: position}
+}
+
+// lastInstructionIsPop checks if the last emitted instruction was code.OpPop.
+func (c *Compiler) lastInstructionIsPop() bool {
+	return c.lastInstruction.Opcode == code.OpPop
+}
+
+func (c *Compiler) removePopInstruction() {
+	c.instructions = c.instructions[:c.lastInstruction.Position]
+	c.lastInstruction = c.previousInstruction
+	// TODO: Set previous instruction to the previous previous instruction
+	c.previousInstruction = nil
 }
 
 func (c *Compiler) ByteCode() *ByteCode {
