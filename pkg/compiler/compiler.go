@@ -10,6 +10,8 @@ import (
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
 
+const DUMMY_OPERAND = 9999
+
 // TODO: Prefix all errors with "Compiler error"
 
 // EmittedInstruction represents an instruction emitted by the compiler.
@@ -123,8 +125,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
-		// 9999 is a dummy value and will be updated after all other instructions have been added
-		jumpNotTruthyPosition := c.emit(code.OpJumpNotTruthy, 9999)
+		jumpNotTruthyPosition := c.emit(code.OpJumpNotTruthy, DUMMY_OPERAND)
 
 		err = c.Compile(node.Consequence)
 		if err != nil {
@@ -135,14 +136,31 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastInstruction()
 		}
 
-		// Replace the dummy operand with the position of the first instruction after the consequence of an if statement.
-		c.updateOperand(jumpNotTruthyPosition, len(c.instructions))
+		// If there is no else statement, we just want to jump to the end of the consequence
+		if node.Alternative == nil {
+			// Replace the dummy operand with the position of the first instruction after the consequence of an if statement.
+			c.updateOperand(jumpNotTruthyPosition, len(c.instructions))
+		} else {
+			// The jump statement is to jump over the else block
+			// If the VM encounters the instruction in this context, it means the conditional evaluated to true
+			jumpPosition := c.emit(code.OpJump, DUMMY_OPERAND)
 
-		// err = c.Compile(node.Alternative)
-		// if err != nil {
-		// 	return err
-		// }
-		//
+			// Replace the dummy operand with the position after the jump operator which is the else block
+			c.updateOperand(jumpNotTruthyPosition, len(c.instructions))
+
+			err = c.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+
+			if c.lastInstructionIsPop() {
+				c.removeLastInstruction()
+			}
+
+			// Replace the dummy operand with the position of the first instruction after the else block
+			c.updateOperand(jumpPosition, len(c.instructions))
+		}
+
 	case *ast.BlockStatement:
 		for _, stmt := range node.Statements {
 			err := c.Compile(stmt)
