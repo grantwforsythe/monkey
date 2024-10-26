@@ -252,3 +252,23 @@ func (m *Macro) Inspect() string {
 
 	return out.String()
 }
+
+// IsTruthy determines if an object is truthy.
+// Integer objects greater than 0, Arrays and Hashes with len greater than 0, and booleans with a value of true are truthy.
+// Integer objects less than or equal to 0, Arrays and Hashes with len equal 0, Null objects, booleans with a value of false, and all other objects are falsey.
+func IsTruthy(obj Object) bool {
+	switch obj.Type() {
+	case INTEGER_OBJ:
+		return obj.(*Integer).Value > 0
+	case ARRAY_OBJ:
+		return len(obj.(*Array).Elements) > 0
+	case HASH_OBJ:
+		return len(obj.(*Hash).Pairs) > 0
+	case NULL_OBJ:
+		return false
+	case BOOLEAN_OBJ:
+		return obj.(*Boolean).Value
+	default:
+		return false
+	}
+}

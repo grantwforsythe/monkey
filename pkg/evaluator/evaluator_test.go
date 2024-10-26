@@ -354,7 +354,7 @@ func TestEvalBuiltinFunctionFirst(t *testing.T) {
 		expected any
 	}{
 		{`first([1, 2, 3])`, 1},
-		{`first([])`, NULL},
+		{`first([])`, object.NULL},
 		{`first()`, "wrong number of arguments. got=0, want=1"},
 		{`first(1)`, "'first' only accepts an array as an argument. got=INTEGER"},
 	}
@@ -388,7 +388,7 @@ func TestEvalBuiltinFunctionLast(t *testing.T) {
 		input    string
 		expected any
 	}{
-		{`last([])`, NULL},
+		{`last([])`, object.NULL},
 		{`last()`, "wrong number of arguments. got=0, want=1"},
 		{`last(1)`, "'last' only accepts an array as an argument. got=INTEGER"},
 	}
@@ -439,9 +439,9 @@ func TestEvalBuiltinFunctionRest(t *testing.T) {
 		{`rest([1])`,
 			object.Array{Elements: []object.Object{&object.Integer{Value: 1}}},
 			&object.Array{Elements: make([]object.Object, 0)}},
-		{`rest([])`, object.Array{Elements: make([]object.Object, 0)}, NULL},
+		{`rest([])`, object.Array{Elements: make([]object.Object, 0)}, object.NULL},
 		// The initial value does not matter here as we are just checking the error message
-		{`rest([1], [2])`, NULL, "wrong number of arguments. got=2, want=1"},
+		{`rest([1], [2])`, object.NULL, "wrong number of arguments. got=2, want=1"},
 		{
 			`rest(1)`,
 			&object.Integer{Value: 1},
@@ -673,8 +673,8 @@ func TestEvalHashLiterals(t *testing.T) {
 		(&object.String{Value: "two"}).HashKey():   2,
 		(&object.String{Value: "three"}).HashKey(): 3,
 		(&object.Integer{Value: 4}).HashKey():      4,
-		TRUE.HashKey():                             5,
-		FALSE.HashKey():                            6,
+		object.TRUE.HashKey():                      5,
+		object.FALSE.HashKey():                     6,
 	}
 
 	if len(result.Pairs) != len(expected) {
@@ -777,7 +777,7 @@ func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 }
 
 func testNullObject(t *testing.T, obj object.Object) bool {
-	if obj != NULL {
+	if obj != object.NULL {
 		t.Errorf("obj is not NULL. got=%T (%+v)", obj, obj)
 		return false
 	}

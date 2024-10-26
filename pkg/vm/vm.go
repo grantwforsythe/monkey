@@ -24,9 +24,6 @@ type VM struct {
 	sp int
 }
 
-var TRUE = &object.Boolean{Value: true}
-var FALSE = &object.Boolean{Value: false}
-
 // New creates a new virtual machine from bytecode.
 func New(bytecode *compiler.ByteCode) *VM {
 	return &VM{
@@ -184,7 +181,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpTrue:
-			err := vm.push(TRUE)
+			err := vm.push(object.TRUE)
 			if err != nil {
 				return err
 			}
@@ -208,7 +205,7 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpFalse:
-			err := vm.push(FALSE)
+			err := vm.push(object.FALSE)
 			if err != nil {
 				return err
 			}
@@ -253,9 +250,9 @@ func (vm *VM) push(obj object.Object) error {
 // convertBooleanToObject converts a boolean value into a *object.Boolean.
 func convertBooleanToObject(val bool) *object.Boolean {
 	if val {
-		return TRUE
+		return object.TRUE
 	}
-	return FALSE
+	return object.FALSE
 }
 
 // executeBangOperator negates the last value pushed onto the stack.
@@ -264,12 +261,12 @@ func (vm *VM) executeBangOperator() error {
 	operand := vm.pop()
 
 	switch operand {
-	case TRUE:
-		return vm.push(FALSE)
-	case FALSE:
-		return vm.push(TRUE)
+	case object.TRUE:
+		return vm.push(object.FALSE)
+	case object.FALSE:
+		return vm.push(object.TRUE)
 	// BUG: Potential bug here as any object on the stack will have a falsely value prefixed with the bang operator
 	default:
-		return vm.push(FALSE)
+		return vm.push(object.FALSE)
 	}
 }

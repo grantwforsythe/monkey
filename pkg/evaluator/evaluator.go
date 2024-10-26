@@ -13,14 +13,6 @@ import (
 	"github.com/grantwforsythe/monkeylang/pkg/object"
 )
 
-// NOTE: env can be refactored into the package scope so it does not need to be passed around
-
-var (
-	TRUE  = &object.Boolean{Value: true}
-	FALSE = &object.Boolean{Value: false}
-	NULL  = &object.Null{}
-)
-
 // Eval recursively walks an AST evaluating each node into their respective objects.
 func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
@@ -183,23 +175,23 @@ func evalProgram(program *ast.Program, env *object.Environment) object.Object {
 
 func evalBooleanExpression(value bool) object.Object {
 	if value {
-		return TRUE
+		return object.TRUE
 	}
-	return FALSE
+	return object.FALSE
 }
 
 func evalPrefixExpression(operator string, right object.Object) object.Object {
 	switch operator {
 	case "!":
 		switch right {
-		case TRUE:
-			return FALSE
-		case FALSE:
-			return TRUE
-		case NULL:
-			return TRUE
+		case object.TRUE:
+			return object.FALSE
+		case object.FALSE:
+			return object.TRUE
+		case object.NULL:
+			return object.TRUE
 		default:
-			return FALSE
+			return object.FALSE
 		}
 	case "-":
 		if right, ok := right.(*object.Integer); ok {
@@ -240,7 +232,7 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 		return evalBooleanExpression(left == right)
 	case operator == "!=":
 		return evalBooleanExpression(left != right)
-	// If left and right are boolean objects, they are evaluated to either TRUE or FALSE which are constant pointer
+	// If left and right are boolean objects, they are evaluated to either object.TRUE or object.FALSE which are constant pointer
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
 	default:
@@ -296,28 +288,12 @@ func evalIfExpression(node *ast.IfExpression, env *object.Environment) object.Ob
 		return condition
 	}
 
-	if isTruthy(condition) {
+	if object.IsTruthy(condition) {
 		return Eval(node.Consequence, env)
 	} else if node.Alternative != nil {
 		return Eval(node.Alternative, env)
 	} else {
-		return NULL
-	}
-}
-
-func isTruthy(obj object.Object) bool {
-	switch obj {
-	case NULL:
-		return false
-	case TRUE:
-		return true
-	case FALSE:
-		return false
-	default:
-		// There are currently only 3 object types: Integer, Boolean, and Null
-		// If obj is not of type Boolean or Null, then we know it has to be of type Integer
-		// TODO: Handle the case for more object types
-		return obj.(*object.Integer).Value > 0
+		return object.NULL
 	}
 }
 
@@ -393,7 +369,7 @@ func evalIndexExpression(left, index object.Object) object.Object {
 
 		// Indexing out of bounds
 		if idx < 0 || idx > int64(len(array.Elements)-1) {
-			return NULL
+			return object.NULL
 		}
 
 		return array.Elements[idx]
@@ -407,7 +383,7 @@ func evalIndexExpression(left, index object.Object) object.Object {
 
 		value, ok := left.Pairs[idx.HashKey()]
 		if !ok {
-			return NULL
+			return object.NULL
 		}
 
 		return value.Value

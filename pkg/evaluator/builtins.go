@@ -41,7 +41,7 @@ var builtin = map[string]*object.Builtin{
 			}
 
 			if len(array.Elements) == 0 {
-				return NULL
+				return object.NULL
 			}
 
 			return array.Elements[0]
@@ -64,7 +64,7 @@ var builtin = map[string]*object.Builtin{
 
 			length := len(array.Elements)
 			if length == 0 {
-				return NULL
+				return object.NULL
 			}
 
 			return array.Elements[length-1]
@@ -87,7 +87,7 @@ var builtin = map[string]*object.Builtin{
 
 			length := len(array.Elements)
 			if length == 0 {
-				return NULL
+				return object.NULL
 			}
 
 			elements := make([]object.Object, length-1)
@@ -135,7 +135,7 @@ var builtin = map[string]*object.Builtin{
 			for _, arg := range args {
 				fmt.Println(arg.Inspect())
 			}
-			return NULL
+			return object.NULL
 		},
 	},
 }

@@ -58,3 +58,38 @@ func TestIntegerHashKey(t *testing.T) {
 		t.Errorf("strings with same content have different hash keys")
 	}
 }
+
+func TestIsTruthy(t *testing.T) {
+	tests := []struct {
+		obj      Object
+		isTruthy bool
+	}{
+		{&Integer{42}, true},
+		{&Integer{0}, false},
+		{&Integer{-42}, false},
+		{&Boolean{true}, true},
+		{&Boolean{false}, false},
+		{&Null{}, false},
+		{&Null{}, false},
+		{&Array{}, false},
+		{&Array{Elements: []Object{&Integer{42}}}, true},
+		{&Hash{}, false},
+		{
+			&Hash{
+				Pairs: map[HashKey]HashPair{
+					{Type: INTEGER_OBJ, Value: 42}: {
+						Key:   &Integer{42},
+						Value: &Boolean{true},
+					},
+				},
+			},
+			true,
+		},
+	}
+
+	for _, test := range tests {
+		if IsTruthy(test.obj) != test.isTruthy {
+			t.Errorf("%s is not %ty", test.obj.Inspect(), test.isTruthy)
+		}
+	}
+}
