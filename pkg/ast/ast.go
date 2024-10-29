@@ -194,11 +194,12 @@ func (bs *BlockStatement) String() string {
 	return out.String()
 }
 
+// IfExpression represents an if-else statement.
 type IfExpression struct {
 	Token       token.Token
-	Condition   Expression
-	Consequence *BlockStatement
-	Alternative *BlockStatement
+	Condition   Expression      // Condition represents conditional portion
+	Consequence *BlockStatement // Consequence represents the body
+	Alternative *BlockStatement // Alternative represents the else porition.
 }
 
 func (ie *IfExpression) expressionNode()      {}
