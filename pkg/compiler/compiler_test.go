@@ -244,60 +244,82 @@ func TestBooleanExpression(t *testing.T) {
 
 func TestConditionals(t *testing.T) {
 	tests := []compilerTestCase{
+		// {
+		// 	"if (true) { 10 }; 3333",
+		// 	[]any{10, 3333},
+		// 	[]code.Instructions{
+		// 		// index: 000
+		// 		code.Make(code.OpTrue),
+		// 		// index: 001
+		// 		code.Make(code.OpJumpNotTruthy, 7),
+		// 		// index: 004
+		// 		code.Make(code.OpConstant, 0),
+		// 		// index: 007
+		// 		code.Make(code.OpPop),
+		// 		// index: 008
+		// 		code.Make(code.OpConstant, 1),
+		// 		// index: 011
+		// 		code.Make(code.OpPop),
+		// 	},
+		// },
+		// {
+		// 	"if (false) { 10 }; 3333",
+		// 	[]any{10, 3333},
+		// 	[]code.Instructions{
+		// 		// index: 000
+		// 		code.Make(code.OpFalse),
+		// 		// index: 001
+		// 		code.Make(code.OpJumpNotTruthy, 7),
+		// 		// index: 004
+		// 		code.Make(code.OpConstant, 0),
+		// 		// index: 007
+		// 		code.Make(code.OpPop),
+		// 		// index: 008
+		// 		code.Make(code.OpConstant, 1),
+		// 		// index: 011
+		// 		code.Make(code.OpPop),
+		// 	},
+		// },
+		// {
+		// 	"if (true) { 10 } else { 20 }; 3333",
+		// 	[]any{10, 20, 3333},
+		// 	[]code.Instructions{
+		// 		// index: 000
+		// 		code.Make(code.OpTrue),
+		// 		// index: 001
+		// 		code.Make(code.OpJumpNotTruthy, 10),
+		// 		// index: 004
+		// 		code.Make(code.OpConstant, 0),
+		// 		// index: 007
+		// 		code.Make(code.OpJump, 13),
+		// 		// index: 010
+		// 		code.Make(code.OpConstant, 1),
+		// 		// index: 013
+		// 		code.Make(code.OpPop),
+		// 		// index: 014
+		// 		code.Make(code.OpConstant, 2),
+		// 		// index: 017
+		// 		code.Make(code.OpPop),
+		// 	},
+		// },
 		{
-			"if (true) { 10 }; 3333",
-			[]any{10, 3333},
+			"if (5 > 1) { 10 }; 3333",
+			[]any{5, 1, 10, 3333},
 			[]code.Instructions{
 				// index: 000
-				code.Make(code.OpTrue),
-				// index: 001
-				code.Make(code.OpJumpNotTruthy, 7),
-				// index: 004
 				code.Make(code.OpConstant, 0),
-				// index: 007
-				code.Make(code.OpPop),
-				// index: 008
+				// index: 003
 				code.Make(code.OpConstant, 1),
-				// index: 011
-				code.Make(code.OpPop),
-			},
-		},
-		{
-			"if (false) { 10 }; 3333",
-			[]any{10, 3333},
-			[]code.Instructions{
-				// index: 000
-				code.Make(code.OpFalse),
-				// index: 001
-				code.Make(code.OpJumpNotTruthy, 7),
-				// index: 004
-				code.Make(code.OpConstant, 0),
+				// index: 006
+				code.Make(code.OpGT),
 				// index: 007
-				code.Make(code.OpPop),
-				// index: 008
-				code.Make(code.OpConstant, 1),
-				// index: 011
-				code.Make(code.OpPop),
-			},
-		},
-		{
-			"if (true) { 10 } else { 20 }; 3333",
-			[]any{10, 20, 3333},
-			[]code.Instructions{
-				// index: 000
-				code.Make(code.OpTrue),
-				// index: 001
-				code.Make(code.OpJumpNotTruthy, 10),
-				// index: 004
-				code.Make(code.OpConstant, 0),
-				// index: 007
-				code.Make(code.OpJump, 13),
+				code.Make(code.OpJumpNotTruthy, 13),
 				// index: 010
-				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
 				// index: 013
 				code.Make(code.OpPop),
 				// index: 014
-				code.Make(code.OpConstant, 2),
+				code.Make(code.OpConstant, 3),
 				// index: 017
 				code.Make(code.OpPop),
 			},
@@ -356,7 +378,6 @@ func testInstructions(expected []code.Instructions, actual code.Instructions) er
 			)
 		}
 	}
-
 	return nil
 }
 

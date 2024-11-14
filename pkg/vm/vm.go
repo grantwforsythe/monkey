@@ -18,6 +18,7 @@ type VM struct {
 	constants    []object.Object
 	instructions code.Instructions
 
+	// TODO: Improve documentation
 	// Instructions
 	stack []object.Object
 	// sp represents a stackpointer which always points to the next free space in the stack.
@@ -213,6 +214,21 @@ func (vm *VM) Run() error {
 		case code.OpPop:
 			vm.pop()
 
+		case code.OpJump:
+			// Decode the operand for the jump instruction
+			position := int(code.ReadUint16(vm.instructions[ip+1:]))
+			// ip is incremented after each iteration so we need to decrement to account for that
+			ip = position - 1
+
+		case code.OpJumpNotTruthy:
+			position := int(code.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+
+			condition := vm.pop()
+			if !object.IsTruthy(condition) {
+				ip = position - 1
+			}
+
 		}
 	}
 
@@ -256,7 +272,7 @@ func convertBooleanToObject(val bool) *object.Boolean {
 }
 
 // executeBangOperator negates the last value pushed onto the stack.
-// If the last value is not of type *object.Boolean, it will default to FALSE.
+// If the last value is not of type *object.Boolean, it will default to object.FALSE.
 func (vm *VM) executeBangOperator() error {
 	operand := vm.pop()
 
